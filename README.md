@@ -8,5 +8,10 @@ HealthChain is a proof of concept for a decentralized health record system. Our 
 Consider the situation 
 
 ```
-Tom from the US is vacationing in Greece. While there he encounters an injury and is sent to the hospital. Before a Doctor can provide him help, they may need to get his medical records mailed from home. Instead, the doctor can use Tom's private key to get access to his health information. With quick access to these records, the Doctor can more efficiently and rapidly treat Tom so that he can recover and enjoy his vacation.
+Tom from the US is vacationing in Greece. While there he encounters an injury and is sent to the hospital. 
+Before a Doctor can provide him help, they may need to get his medical records mailed from home. 
+Instead, the doctor can use Tom's private key to get access to his health information. 
+With quick access to these records, the Doctor can more efficiently and rapidly treat Tom so that 
+he can recover and enjoy his vacation.
 ```
+
