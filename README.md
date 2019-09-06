@@ -15,3 +15,16 @@ With quick access to these records, the Doctor can more efficiently and rapidly 
 he can recover and enjoy his vacation.
 ```
 
+## Getting Started
+
+### Prerequisites
+
+### Installation    
+
+### Deployment
+
+## Authors
+
+* **Noah Deahl** - *Initial work* - [ndeahl1999](https://github.com/ndeahl1999)
+* **Andrew Qu** - *Initial work* - [quuu](https://github.com/quuu)
+* **Rich Turiano** - *Initial work* - [kiwis0](https://github.com/kiwis0)
