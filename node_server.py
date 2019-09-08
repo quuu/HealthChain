@@ -22,7 +22,37 @@ class BlockChain:
         self.unconfirmed_apts = []
         self.chain = []
 
+    @property
+    def last_block(self):
+        return self.chain[-1]
+
+    @classmethod
+    def is_valid_proof(cls, block, block_hash):
+        return block_hash == block.compute_hash
+
+    @classmethod
+    def check_chain_validity(cls, chain):
+        result = True
+        previous_hash = 0  # genesus index
+        for block in chain:
+            block_hash = block.hash
+
+            if (
+                not cls.is_valid_proof(block, block_hash)
+                or previous_hash != block.previous_hash
+            ):
+                result = False
+                break
+
+            # update prev hash for loop
+            previous_hash = block_hash
+
+        return result
+
     def create_genesis_block(self):
+        # todo: db should have been initialized by this point, any other valid
+        # blocks added should be added to db
+        # how is seperate system going to coop with chain?
         gen_block = Block(0, [], time.time(), "0")
         gen_block.hash = (
             gen_block.compute_hash()
@@ -30,7 +60,15 @@ class BlockChain:
         self.chain.append(gen_block)
 
     def add_block(self, block, proof):
-        pass
+        previous_hash = self.last_block.hash
+        # two cases where block should not be added
+        if previous_hash != block.previous_hash:
+            return False
+        if not BlockChain.is_valid_proof(block, proof):
+            return False
+        block.hash = proof
+        self.chain.append(block)
+        return True
 
     def proof_of_work(self, block):
         pass
