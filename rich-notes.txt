@@ -1,0 +1,47 @@
+NODE SERVER and blockchain backend
+
+
+-- setting up pipenv
+    - $ pip install pipenv
+    - $ pipenv install --dev  # to download packages in env
+    - $ pipenv shell  # to enter a shell in env
+
+
+-- tests
+    $ invoke verify  # autoformat, pep, unittests
+        ^^ this should return OK status before any pushes to master branch,
+
+
+
+
+-- block chain implementation
+
+data (called a post) stored on the chain
+appointment = {
+     'Age': '56',
+     'Alcoholism': '0',
+     'AppointmentDay': '2016-04-29T00:00:00Z',
+     'AppointmentID': '5642503',
+     'Diabetes': '0',
+     'Gender': 'M',
+     'Handcap': '0',
+     'Hipertension': '0',
+     'Neighbourhood': 'JARDIM DA PENHA',
+     'No-show': 'No',
+     'PatientId': '558997776694438',
+     'SMS_received': '0',
+     'ScheduledDay': '2016-04-29T16:08:27Z',
+     'Scholarship': '0'
+ }
+* might use tinydb for nosql
+* want to get the blokchains up and running before storing local db's
+
+  Q how can we make the data decentralized ?
+    -- each node server also contains a nosql db for the entire chain with encrypted
+        docs,
+
+    -- from local blockchain, get the data on certain PatientId with special
+        access of private key
+    Q  if the chain is not up to date ?
+
+* all POST, GET, etc. need to be p2p encrypted
