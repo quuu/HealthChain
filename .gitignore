@@ -1,0 +1,4 @@
+__pycache__/
+planning.txt
+.DS_Store
+.flake8
