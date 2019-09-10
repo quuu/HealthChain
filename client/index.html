@@ -12,85 +12,102 @@
     <link rel="stylesheet" href="https://cdn.materialdesignicons.com/2.5.94/css/materialdesignicons.min.css">
     <!-- Buefy CSS -->
     <link rel="stylesheet" href="buefy.min.css">
-    <!-- Buefy JavaScript -->
-    <script src="buefy.min.js"></script>
     <!--Supplemental CSS-->
     <link rel="stylesheet" href="hc.css">
-    <!--Supplemental JS-->
-    <script src="index.js"></script>
+    
 
 </head>
-
-<nav class="navbar" role="navigation" aria-label="main navigation">
-    <div class="navbar-brand">
-      <a class="navbar-item" href="#">
-        <div class="color_2">HEALTHCHAIN</div>
-      </a>
-  
-      <a role="button" class="navbar-burger burger" aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
-        <span aria-hidden="true"></span>
-        <span aria-hidden="true"></span>
-        <span aria-hidden="true"></span>
-      </a>
-    </div>
-  
-    <div id="navbarBasicExample" class="navbar-menu">
-      <div class="navbar-start">
-        <a class="navbar-item">
-          Home
-        </a>
-  
-        <a class="navbar-item">
-          Records
-        </a>
-  
-        <div class="navbar-item has-dropdown is-hoverable">
-          <a class="navbar-link">
-            More
-          </a>
-  
-          <div class="navbar-dropdown">
-            <a class="navbar-item">
-              About
-            </a>
-            <a class="navbar-item">
-              Jobs
-            </a>
-            <a class="navbar-item">
-              Contact
-            </a>
-            <hr class="navbar-divider">
-            <a class="navbar-item">
-              Report an issue
-            </a>
-          </div>
-        </div>
-      </div>
-  
-      <div class="navbar-end">
-        <div class="navbar-item">
-          <div class="buttons">
-            <a class="button color_1">
-              <strong>Sign up</strong>
-            </a>
-            <a class="button is-light">
-              Log in
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </nav>
-  
-
-<div class="container is-fluid">
-    <div class="notification">
-        This container is <strong>centered</strong> on desktop.
-      </div>
-</div>
-
-
-
 <body>
+  <div id="app">
+    <b-navbar>
+      <template slot="brand">
+        <b-navbar-item tag="router-link" :to="{ path: '/' }">
+          <img
+            src="g3947.png"
+            alt="Lightweight UI components for Vue.js based on Bulma"
+          >
+        </b-navbar-item>
+        </template>
+        <template slot="start">
+            <b-navbar-item href="#">
+                <b-button type="is-danger" outlined>Home</b-button>
+            </b-navbar-item>
+            <b-navbar-item href="#">
+                <b-button type="is-danger" outlined>About Us</b-button>
+            </b-navbar-item>
+        </template>
+        <template slot="end">
+            
+            <b-navbar-item href="https://github.com/quuu/HealthChain">
+              <b-button size="is-medium"
+                icon-left="github-circle">
+                GitHub
+            </b-button>
+            </b-navbar-item>
+             
+            <b-dropdown position="is-bottom-left" aria-role="menu">
+                <a
+                    class="navbar-item"
+                    slot="trigger"
+                    role="button">
+                    <span>Login</span>
+                    <b-icon icon="menu-down"></b-icon>
+                </a>
+
+                <b-dropdown-item
+                    aria-role="menu-item"
+                    :focusable="false"
+                    custom
+                    paddingless>
+                    <form action="">
+                        <div class="modal-card" style="width:300px;">
+                            <section class="modal-card-body">
+                                <b-field label="Email">
+                                    <b-input
+                                        type="email"
+                                        placeholder="Your email"
+                                        required>
+                                    </b-input>
+                                </b-field>
+
+                                <b-field label="Password">
+                                    <b-input
+                                        type="password"
+                                        password-reveal
+                                        placeholder="Your password"
+                                        required>
+                                    </b-input>
+                                </b-field>
+
+                                <b-checkbox>Remember me</b-checkbox>
+                            </section>
+                            <footer class="modal-card-foot">
+                                <button class="button is-primary">Login</button>
+                            </footer>
+                        </div>
+                    </form>
+                </b-dropdown-item>
+            </b-dropdown>
+        </template>
+              
+    </b-navbar>
+
+    <div class="container is-fluid">
+        <section class="section">
+            <div class="container">
+                <h1 class="title">What is HealthChain?</h1>
+              <h2 class="subtitle">
+                A simple container to divide your page into <strong>sections</strong>, like the one you're currently reading
+              </h2>
+            </div>
+          </section>    
+    </div>
+
+  </div>
+    
+  <!-- Buefy JavaScript -->
+  <script src="buefy.min.js"></script>
+  <!--Supplemental JS-->
+  <script src="index.js"></script>
 </body>
 </html>

@@ -1,9 +1,22 @@
 html{
-    background-color: #82CAFA;
+    background-color: #62C2FE;
+}
+
+.navbar-link.is-active, .navbar-link:focus, .navbar-link:focus-within, .navbar-link:hover, a.navbar-item.is-active, a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover{
+    color: #E80000;
+}
+
+a {
+    color: #E80000;
+}
+
+.navbar-item img {
+    max-height: 3rem;
 }
 
 .color_1{
-    background-color: #82CAFA;
+    background-color: #62C2FE;
+    color: whitesmoke;
 }
 
 .color_2{
