@@ -1,7 +1,81 @@
 import json
-import flask
+from flask import *
 import hashlib
 import time
+from Crypto.Hash import SHA256
+
+# initialize the flask app
+app = Flask(__name__)
+
+
+
+'''
+Serves all static HTML files
+'''
+@app.route("/<string:page_name>/")
+def hello(page_name):
+    return render_template('%s.html' % page_name)
+
+
+'''
+Index page
+'''
+@app.route("/")
+def root():
+    return render_template('index.html')
+
+
+'''
+Route responsible for generating the hash-key
+Should be removed for production
+
+'''
+@app.route("/hashkey")
+def get_hash_key():
+    first_name = request.args.get('first_name')
+    if first_name is None:
+        return "first_name not provided"
+    last_name = request.args.get('last_name')
+    if last_name is None:
+        return "last_name not provided"
+    country_code = request.args.get('country_code')
+    if country_code is None:
+        return "country_code not provided"
+    unique_id = request.args.get('unique_id')
+    if unique_id is None:
+        return "unique_id not provided"
+
+    key = SHA256.new(first_name + last_name + country_code + unique_id).hexdigest()
+    return key
+
+
+'''
+Route to get the hashkey and compare with every
+record in the database
+
+'''
+@app.route("/appointments")
+def get_appointments():
+    first_name = request.args.get('first_name')
+    if first_name is None:
+        return "first_name not provided"
+    last_name = request.args.get('last_name')
+    if last_name is None:
+        return "last_name not provided"
+    country_code = request.args.get('country_code')
+    if country_code is None:
+        return "country_code not provided"
+    unique_id = request.args.get('unique_id')
+    if unique_id is None:
+        return "unique_id not provided"
+
+
+    # perform for loop for every record and attempt to unhash
+    return "some appointments"
+
+
+
+
 
 
 class Block:
@@ -86,10 +160,6 @@ class BlockChain:
 
 
 """ THIS BELOW SHOULD NOT BE GLOBAL SCOPE """
-
-app = flask.Flask(__name__)
-
-
 def consensus():
     """ if a longer chain exsists, gets the longest chain other miners, or nodes,
         and replaces local chain to longest.
@@ -107,3 +177,5 @@ def new_appointment():
 def mine_unconfirmed():
     """ initiate mining on unconfirmed appointments """
     pass
+
+
