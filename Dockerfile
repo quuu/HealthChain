@@ -16,4 +16,6 @@ COPY . /app
 ENV FLASK_APP node_server.py
 
 
+ENV FLASK_DEBUG 1
+
 CMD [ "flask", "run", "--host", "0.0.0.0" ]
