@@ -4,6 +4,7 @@ import hashlib
 import time
 from Crypto.Hash import SHA256
 
+
 # initialize the flask app
 app = Flask(__name__)
 
