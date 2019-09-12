@@ -1,5 +1,5 @@
 html{
-    background-color: #62C2FE;
+    /*background-color: #62C2FE;*/
 }
 
 .navbar-link.is-active, .navbar-link:focus, .navbar-link:focus-within, .navbar-link:hover, a.navbar-item.is-active, a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover{
@@ -22,3 +22,7 @@ a {
 .color_2{
     color: #E80000;
 }
+
+.is-horizontal-center {
+    justify-content: center;
+  }
