@@ -1,21 +1,17 @@
-FROM ubuntu:18.04
-
-RUN apt-get update -y && \
-      apt-get install -y python-pip python-dev python3-distutils 
-
-
-COPY ./requirements.txt /app/requirements.txt
+FROM golang:latest
 
 WORKDIR /app
 
-RUN pip install -r requirements.txt
+COPY go.mod go.sum ./
 
-COPY . /app
+RUN go mod download
 
+COPY . .
 
-ENV FLASK_APP node_server.py
+RUN go build -o healthchain . 
 
+EXPOSE 3000
 
-ENV FLASK_DEBUG 1
+EXPOSE 8080
 
-CMD [ "flask", "run", "--host", "0.0.0.0" ]
+CMD [ './healthchain' ]
