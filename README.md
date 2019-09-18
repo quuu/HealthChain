@@ -21,15 +21,17 @@ he can recover and enjoy his vacation.
 
 ### Installation    
 
+```
+
+cd HealthChain
+go build . 
+./healthchain
+
+```
+
 ### Deployment
 
-
 ### Contribution
-
-- Static HTML files to be hosted should be put in `/templates/`
-  - The name of the file should be the path it should be reached at
-
-- Follow the camel
 
 ## Authors
 
