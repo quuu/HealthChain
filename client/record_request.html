@@ -10,6 +10,9 @@
     
     <!--Icon Package-->
     <link rel="stylesheet" href="https://cdn.materialdesignicons.com/2.5.94/css/materialdesignicons.min.css">
+
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css">
+
     <!-- Buefy CSS -->
     <link rel="stylesheet" href="buefy.min.css">
     <!--Supplemental CSS-->
@@ -43,63 +46,66 @@
                 icon-left="github-circle">
                 
             </b-button>
-            </b-navbar-item>
-             
-            <b-dropdown position="is-bottom-left" aria-role="menu">
-                <a
-                    class="navbar-item"
-                    slot="trigger"
-                    role="button">
-                    <span>Login</span>
-                    <b-icon icon="menu-down"></b-icon>
-                </a>
-
-                <b-dropdown-item
-                    aria-role="menu-item"
-                    :focusable="false"
-                    custom
-                    paddingless>
-                    <form action="">
-                        <div class="modal-card" style="width:300px;">
-                            <section class="modal-card-body">
-                                <b-field label="Email">
-                                    <b-input
-                                        type="email"
-                                        placeholder="Your email"
-                                        required>
-                                    </b-input>
-                                </b-field>
-
-                                <b-field label="Password">
-                                    <b-input
-                                        type="password"
-                                        password-reveal
-                                        placeholder="Your password"
-                                        required>
-                                    </b-input>
-                                </b-field>
-
-                                <b-checkbox>Remember me</b-checkbox>
-                            </section>
-                            <footer class="modal-card-foot">
-                                <button class="button is-primary">Login</button>
-                            </footer>
-                        </div>
-                    </form>
-                </b-dropdown-item>
-            </b-dropdown>
+          </b-navbar-item>
         </template>
               
-    </b-navbar>
-
-    <div class='column'>   
-        <div class='card-content is-flex is-horizontal-center'>
-            <img src='g3884.png'>
-        </div>
-    </div>
-
-            
-   
+    </b-navbar>     
+    
+      <div class="hero-body">
+          <div class="container ">
+            <div class="columns is-5-tablet is-4-desktop is-3-widescreen">
+                <div class="column">
+                    <form class="box has-background-light">
+                        <div class="field has-text-centered">
+                            <img src="g3884.png" width="400">
+                        </div>
+                        <p class="title is-3 has-text-centered">Health Records Request</p>
+                        <div class="field">
+                          <label class="label">First Name</label>
+                          <div class="control">
+                            <input class="input" type="text" placeholder="James">
+                          </div>
+                        </div>
+                        <div class="field">
+                          <label class="label">Last Name</label>
+                          <div class="control">
+                            <input class="input" type="text" placeholder="Chainer">
+                          </div>
+                        </div>
+                        <div class="field">
+                          <p class="control has-icons-left">
+                            <span class="select">
+                              <select>
+                                <option selected>Country</option>
+                                <option>United States (USA)</option>
+                                <option>United Kingdom (GBR)</option>
+                                <option>Germany (DEU)</option>
+                              </select>
+                            </span>
+                            <span class="icon is-small is-left">
+                              <i class="fas fa-globe"></i>
+                            </span>
+                          </p>
+                        </div>
+                        <div class="field">
+                            <p class="control has-icons-left">
+                                <input class="input" type="password" placeholder="SSN">
+                                <span class="icon is-small is-left">
+                                  <i class="fas fa-lock"></i>
+                                </span>
+                              </p>
+                        </div>
+                        <div class="field">
+                            <button class="button is-danger">
+                                Request Records
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+          </div>
+      </div>
+  
     
     
     
