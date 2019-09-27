@@ -1,13 +1,17 @@
 package main
 
 import (
-    "log"
-    "net/http"
+	"fmt"
+	"log"
+	"net/http"
 )
 
 func main() {
 
-    http.Handle("/", http.FileServer(http.Dir("./client")))
+	http.Handle("/", http.FileServer(http.Dir("./client")))
 
-    log.Fatal(http.ListenAndServe(":8081", nil))
+	log.Fatal(http.ListenAndServe(":4000", nil))
+
+	fmt.Println("Server up on port 4000")
+
 }
