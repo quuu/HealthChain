@@ -2,3 +2,5 @@ __pycache__/
 planning.txt
 .DS_Store
 db.json
+go.sum
+healthchain
