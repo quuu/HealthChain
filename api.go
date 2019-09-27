@@ -48,7 +48,7 @@ func AllRecordsHandler(w http.ResponseWriter, r *http.Request) {
 
 func api() {
 
-	r := chi.NewRou
+	r := chi.NewRouter()
 
 	r.Use(middleware.DefaultCompress)
 
