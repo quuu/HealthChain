@@ -41,12 +41,12 @@ func main() {
 	defer service.Shutdown()
 
 	// now browse for other services
-
 	resolver, nil := zeroconf.NewResolver(nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	// make a channel to save the results
 	entries := make(chan *zeroconf.ServiceEntry)
 	go func(results <-chan *zeroconf.ServiceEntry) {
 		for entry := range results {
@@ -55,6 +55,7 @@ func main() {
 		fmt.Println("out of entries")
 	}(entries)
 
+	// get the background process to browse from
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(*waitTime))
 	defer cancel()
 	err = resolver.Browse(ctx, "_healthchain._tcp", "local.", entries)
