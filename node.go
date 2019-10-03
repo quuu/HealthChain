@@ -28,6 +28,13 @@ func main() {
 	http.ListenAndServe(":3333", r)
 }
 
+// notes on progress
+// establish nosql way to store data
+
+// rest
+// post -> add document to db assigned with hash value
+// get -> get all documents associated with hash value
+
 // FileServer conveniently sets up a http.FileServer handler to serve
 // static files from a http.FileSystem.
 func FileServer(r chi.Router, path string, root http.FileSystem) {
