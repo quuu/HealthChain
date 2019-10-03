@@ -28,7 +28,7 @@ var (
 	waitTime = flag.Int("wait", 10, "Duration in [s] to publish service for.")
 )
 
-func main() {
+func discovery() {
 
 	// create a unique identifier for this node
 	u := uuid.NewV4()

@@ -19,10 +19,8 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	b, err := json.MarshalIndent("a", "", " ")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		// return err
 	}
 	w.Write(b)
-	// return nil
 }
 
 func PeersHandler(w http.ResponseWriter, r *http.Request) {

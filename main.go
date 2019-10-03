@@ -10,7 +10,7 @@ func main() {
 
 	fmt.Println("Starting discovery")
 
-	go discovery()
+	discovery()
 
 	api()
 
