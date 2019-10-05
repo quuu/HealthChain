@@ -1,17 +1,41 @@
 package main
 
 import (
+	// utils
 	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 
+	// "bytes"
+	// "encoding/json"
+
+	//chi-chi
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+	//skv
 )
 
+// notes on progress
+// establish nosql way to store data
+
+// rest
+// post -> add document to db assigned with hash value
+// get -> get all documents associated with hash value
+
 func main() {
+
+	file, _ := os.Open("./data/KaggleV2-May-2016.csv")
+	fmt.Print(file)
+	// store, _ := skv.Open("./local_hc.db")
+
+	// store.Put("hash1", file)
+	// store.Get("hash1", &file)
+	// p
+
+}
+func start_server() {
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
 	r.Use(middleware.Logger)
@@ -27,13 +51,6 @@ func main() {
 	fmt.Println("Node up on port 3333")
 	http.ListenAndServe(":3333", r)
 }
-
-// notes on progress
-// establish nosql way to store data
-
-// rest
-// post -> add document to db assigned with hash value
-// get -> get all documents associated with hash value
 
 // FileServer conveniently sets up a http.FileServer handler to serve
 // static files from a http.FileSystem.
