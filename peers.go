@@ -13,8 +13,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// Peers is a struct used to manage concurrency and a list of peers
-type Peers struct {
+// PeersService is a struct used to manage concurrency and a list of peers
+type PeersService struct {
 	m     *sync.Mutex
 	peers map[string]*Peer
 }
@@ -26,12 +26,16 @@ type Peer struct {
 	Port      int
 }
 
+// function that handles displaying all the messages
+// TODO
+// integrate with the storage
 func recordHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("this works"))
+	w.Write([]byte("Records go here"))
 }
 
 func discovery() {
 
+	// initialize all the endpoints to serve publicly
 	r := chi.NewRouter()
 	r.Get("/records", recordHandler)
 
