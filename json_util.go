@@ -58,7 +58,7 @@ type M map[string]interface{}
 
 func mapsfjson() []M {
 	//open the file
-	jsonFile, err := os.Open("hc_data.json")
+	jsonFile, err := os.Open("hc_db_init.json")
 	if err != nil {
 		fmt.Println(err)
 	}

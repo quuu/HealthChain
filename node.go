@@ -44,6 +44,12 @@ const (
 	dbPort = "33033"
 )
 
+type Patient struct {
+	PatientKey string   `storm:"id"` // public key to access a patients records
+	Records    []string // encrypted json strings for any record associated with this pateint
+	Node       string   // identifies what node this record is on
+}
+
 func start_server() {
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
@@ -77,13 +83,8 @@ func FileServer(r chi.Router, path string, root http.FileSystem) {
 	}))
 }
 
-type Patient struct {
-	PatientKey string   `storm:"id"` // public key to access a patients records
-	Records    []string // encrypted json strings for any record associated with this pateint
-	Node       string   // identifies what node this record is on
-}
-
 func init_db() {
+	fmt.Println("Initializing db")
 	db, err := storm.Open("hc.db")
 	if err != nil {
 		fmt.Println("db.Open exception")
@@ -91,13 +92,19 @@ func init_db() {
 	defer db.Close()
 
 	rows := mapsfjson()
+	fmt.Println("Obtained records from json file")
 	for _, row := range rows {
 		patient_id := db_key(row)
 		var records []string
 		jstring, _ := json.Marshal(row)
-		records = append(records, string(jstring))
+		encrypted_jstr := encrypt_json_string(string(jstring), patient_id)
+		records = append(records, string(encrypted_jstr))
 		p := Patient{PatientKey: patient_id, Records: records, Node: "hc_1"}
-		db.Save(&p)
+		fmt.Println("Saving -> ", p)
+		save_err := db.Save(&p)
+		if save_err != nil {
+			fmt.Println(save_err.Error())
+		}
 	}
 	var test Patient
 	get_err := db.One("PatientKey", "Laurie Feliciano6361781291938-11-18US", &test)
@@ -107,6 +114,15 @@ func init_db() {
 	fmt.Println("This should be a record :) -> ", test)
 
 }
+
+// func addPatient(db *storm.DB, p Patient) error {
+
+// }
+
+// func getPatient(db *storm.DB, patient_key []byte, p Patient) error {
+
+// }
+
 func main() {
 
 	r := chi.NewRouter()
@@ -126,7 +142,22 @@ func main() {
 	r.Get("/panic", func(w http.ResponseWriter, r *http.Request) {
 		panic("test")
 	})
+
+	// db, err := storm.Open("hc.db")
+	// if err != nil {
+	// 	fmt.Println("db.Open exception")
+	// }
+	// defer db.Close()
+
 	init_db()
+
+	// var test Patient
+	// get_err := db.One("PatientKey", "Laurie Feliciano6361781291938-11-18US", &test)
+	// if get_err != nil {
+	// 	fmt.Print(get_err.Error())
+	// }
+
+	// fmt.Println("This should be a record :) -> ", test)
 	// http.ListenAndServe(":3333", r)
 
 }

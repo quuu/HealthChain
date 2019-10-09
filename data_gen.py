@@ -89,6 +89,5 @@ def main():
         writer.writeheader()
         writer.writerows(hc_dataset)
 
-
 if __name__ == "__main__":
     main()
