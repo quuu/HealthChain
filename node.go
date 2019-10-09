@@ -2,11 +2,15 @@ package main
 
 import (
 	// utils
+
 	"fmt"
 	"net/http"
-	"os"
-	"path/filepath"
 	"strings"
+
+	// "contexts"
+	// "flag"
+	// "net/http"
+	// "math/rand"
 
 	// "bytes"
 	// "encoding/json"
@@ -14,7 +18,12 @@ import (
 	//chi-chi
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
-	//skv
+
+	// "github.com/go-chi/docgen"
+	// "github.com/go-chi/render"
+
+	// storm
+	"github.com/asdine/storm"
 )
 
 // notes on progress
@@ -24,17 +33,17 @@ import (
 // post -> add document to db assigned with hash value
 // get -> get all documents associated with hash value
 
-func main() {
+var router *chi.Mux
 
-	file, _ := os.Open("./data/KaggleV2-May-2016.csv")
-	fmt.Print(file)
-	// store, _ := skv.Open("./local_hc.db")
+// var db storm whatever
 
-	// store.Put("hash1", file)
-	// store.Get("hash1", &file)
-	// p
+const (
+	dbName = "go_strom_crud"
+	dbPass = "12345"
+	dbHost = "localhost"
+	dbPort = "33033"
+)
 
-}
 func start_server() {
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
@@ -42,13 +51,9 @@ func start_server() {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("hello world"))
+		w.Write([]byte("Welcome to HealthChain :)\n"))
 	})
 
-	workDir, _ := os.Getwd()
-	filesDir := filepath.Join(workDir, "files")
-	FileServer(r, "/files", http.Dir(filesDir))
-	fmt.Println("Node up on port 3333")
 	http.ListenAndServe(":3333", r)
 }
 
@@ -70,4 +75,34 @@ func FileServer(r chi.Router, path string, root http.FileSystem) {
 	r.Get(path, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fs.ServeHTTP(w, r)
 	}))
+}
+
+func main() {
+
+	r := chi.NewRouter()
+	r.Use(middleware.RequestID)
+	r.Use(middleware.Logger)
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
+
+	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("Welcome to HealthChain :)\n"))
+	})
+
+	r.Get("/ping", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("pong"))
+	})
+
+	r.Get("/panic", func(w http.ResponseWriter, r *http.Request) {
+		panic("test")
+	})
+
+	http.ListenAndServe(":3333", r)
+
+	db, err := storm.Open("hc.db")
+	if err != nil {
+		fmt.Println("db.Open exception")
+	}
+	defer db.close()
+
 }
