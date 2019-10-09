@@ -16,22 +16,18 @@ def gen_ssn(length=9):
 
 def add_country(row, country="US"):
     row["Country"] = country
-    # return row
 
 
 def add_dob(row):
     row["dob"] = gen_dob(int(float(row["age"]))).strftime("%Y-%m-%d")
-    # return row
 
 
 def add_ssn(row, ssn):
     row["ssn"] = ssn
-    # return row
 
 
 def add_full_name(row):
     row["full_name"] = names.get_full_name(gender=row["gender"])
-    # return row
 
 
 def gen_dob(current_age):
@@ -54,7 +50,6 @@ def update_row(row, ssn):
     add_dob(row)
     add_full_name(row)
     add_ssn(row, ssn)
-    # return row
 
 
 def get_starter_data(filepath):
@@ -71,7 +66,6 @@ def gen_dataset(starter_data):
     for row in starter_data:
         new_ssn = random.sample(ssns, 1)[0]
         ssns.remove(new_ssn)
-        # row = update_row(row, new_ssn)
         update_row(row, new_ssn)
     return starter_data
 
