@@ -13,7 +13,7 @@ import (
 	// "math/rand"
 
 	// "bytes"
-	// "encoding/json"
+	"encoding/json"
 
 	//chi-chi
 	"github.com/go-chi/chi"
@@ -81,9 +81,32 @@ type Patient struct {
 	PatientKey string   `storm:"id"` // public key to access a patients records
 	Records    []string // encrypted json strings for any record associated with this pateint
 	Node       string   // identifies what node this record is on
-	Doc
 }
 
+func init_db() {
+	db, err := storm.Open("hc.db")
+	if err != nil {
+		fmt.Println("db.Open exception")
+	}
+	defer db.Close()
+
+	rows := mapsfjson()
+	for _, row := range rows {
+		patient_id := db_key(row)
+		var records []string
+		jstring, _ := json.Marshal(row)
+		records = append(records, string(jstring))
+		p := Patient{PatientKey: patient_id, Records: records, Node: "hc_1"}
+		db.Save(&p)
+	}
+	var test Patient
+	get_err := db.One("PatientKey", "Laurie Feliciano6361781291938-11-18US", &test)
+	if get_err != nil {
+		fmt.Print(get_err.Error())
+	}
+	fmt.Println("This should be a record :) -> ", test)
+
+}
 func main() {
 
 	r := chi.NewRouter()
@@ -103,13 +126,7 @@ func main() {
 	r.Get("/panic", func(w http.ResponseWriter, r *http.Request) {
 		panic("test")
 	})
-
-	http.ListenAndServe(":3333", r)
-
-	db, err := storm.Open("hc.db")
-	if err != nil {
-		fmt.Println("db.Open exception")
-	}
-	defer db.close()
+	init_db()
+	// http.ListenAndServe(":3333", r)
 
 }

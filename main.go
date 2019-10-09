@@ -1,22 +1,18 @@
 package main
 
-import ( 
-	"fmt"
+import (
 	"flag"
-	)
+	"fmt"
+)
 
-
-
-
-func main(){
+func main() {
 	flag.Parse()
 
 	fmt.Println("Starting discovery")
 
 	go discovery()
 
-  api()
+	api()
 
-	
-	return 
+	return
 }
