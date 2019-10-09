@@ -77,6 +77,13 @@ func FileServer(r chi.Router, path string, root http.FileSystem) {
 	}))
 }
 
+type Patient struct {
+	PatientKey string   `storm:"id"` // public key to access a patients records
+	Records    []string // encrypted json strings for any record associated with this pateint
+	Node       string   // identifies what node this record is on
+	Doc
+}
+
 func main() {
 
 	r := chi.NewRouter()
