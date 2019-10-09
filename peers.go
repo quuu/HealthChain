@@ -81,30 +81,10 @@ func discovery() {
 		return
 	}
 
-	// <-ctx.Done()
-
-	// make a channel to save the results
-	/*
-		go func(results <-chan *zeroconf.ServiceEntry) {
-			for entry := range results {
-				fmt.Println(entry)
-				fmt.Println(entry.Port)
-			}
-			fmt.Println("out of entries")
-		}(entries)
-
-		// get the background process to browse from
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(10))
-		defer cancel()
-		err = resolver.Browse(ctx, "_healthchain._tcp", "local.", entries)
-		if err != nil {
-			log.Fatalln("Failed to browse:", err.Error())
-		}
-		<-ctx.Done()
-	*/
-
 	// HANDLE GLOBAL ENTRIES WITH CLOUD HERE
 	// TODO
+
+	// inifinte loop waiting for more entries
 	ticker := time.Tick(1 * time.Second)
 	for {
 		select {
