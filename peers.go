@@ -4,16 +4,8 @@ import (
 	"context"
 	"net"
 	"net/http"
-
-	//	"strconv"
+	"sync"
 	"time"
-	//	"time"
-
-	// "os"
-	//	"net"
-	//	"os"
-	//	"os/signal"
-	//	"syscall"
 
 	"github.com/go-chi/chi"
 	"github.com/grandcat/zeroconf"
@@ -21,8 +13,21 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func recordHandler(w http.ResponseWriter, r *http.Request) {
+// Peers is a struct used to manage concurrency and a list of peers
+type Peers struct {
+	m     *sync.Mutex
+	peers map[string]*Peer
+}
 
+// Peer is a helper struct to store information about the peer
+type Peer struct {
+	ID        string
+	Addresses []net.IP
+	Port      int
+}
+
+func recordHandler(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("this works"))
 }
 
 func discovery() {
@@ -91,17 +96,22 @@ func discovery() {
 		case entry := <-entries:
 			handleEntry(entry)
 		case <-ticker:
-			fetchMessages()
+			fetchRecords()
 		}
 	}
 }
 
+// function responsible for receiving a new peer
+// adding it to the list of peers
 func handleEntry(entry *zeroconf.ServiceEntry) {
 	log.Println("got an entry")
 	log.Println(entry.Port)
-
 }
 
-func fetchMessages() {
-
+// function responsible for asking peers for records
+// TODO
+// only fetch on a need to use basis
+// currently set to fetch every 1 second when theres no new entries
+func fetchRecords() {
+	log.Println("currently fetching records ")
 }
