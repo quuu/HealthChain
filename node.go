@@ -12,6 +12,7 @@ import (
 	"github.com/go-chi/chi/middleware"
 
 	//hc
+	"HealthChain/handlers"
 	"HealthChain/models"
 	u "HealthChain/utils"
 )
@@ -35,6 +36,14 @@ func start_server() {
 	})
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Welcome to HealthChain :)\n"))
+	})
+
+	r.Get("/name", func(w http.ResponseWriter, r *http.Request) {
+		handlers.HelloHandler(w, r)
+	})
+
+	r.Post("/greeting", func(w http.ResponseWriter, r *http.Request) {
+		handlers.GreetingHandler(w, r)
 	})
 
 	r.Get("/ping", func(w http.ResponseWriter, r *http.Request) {
@@ -70,8 +79,7 @@ func main() {
 	// models.InitDB("hc_db_init.json")
 	// deleteFile("hc_db_init.json")
 
-	//start_server()
-
+	start_server()
 	maps := u.Mapsfjson("test.json")
 	f.Println(maps)
 
