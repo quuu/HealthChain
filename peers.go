@@ -14,7 +14,8 @@ import (
 )
 
 // PeersService is a struct used to manage concurrency and a list of peers
-type PeersService struct {
+type PeersList struct {
+	uuid  string
 	m     *sync.Mutex
 	peers map[string]*Peer
 }
@@ -90,6 +91,12 @@ func discovery() {
 		return
 	}
 
+	ps := &PeersList{
+		uuid:  u.String(),
+		m:     &sync.Mutex{},
+		peers: map[string]*Peer{},
+	}
+
 	// HANDLE GLOBAL ENTRIES WITH CLOUD HERE
 	// TODO
 
@@ -98,7 +105,7 @@ func discovery() {
 	for {
 		select {
 		case entry := <-entries:
-			handleEntry(entry)
+			handleEntry(ps, entry)
 		case <-ticker:
 			fetchRecords()
 		}
@@ -107,9 +114,15 @@ func discovery() {
 
 // function responsible for receiving a new peer
 // adding it to the list of peers
-func handleEntry(entry *zeroconf.ServiceEntry) {
+func handleEntry(ps *PeersList, entry *zeroconf.ServiceEntry) {
+	if entry.Instance == ps.uuid {
+		log.Println("found self")
+		return
+	}
 	log.Println("got an entry")
-	log.Println(entry.Port)
+	log.Println(entry)
+	ps.m.Lock()
+	defer ps.m.Unlock()
 }
 
 // function responsible for asking peers for records
