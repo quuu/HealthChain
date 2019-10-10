@@ -16,23 +16,28 @@ import (
 	"net/http"
 )
 
+// datatype for {'key':val, ...}
 type Json map[string]interface{}
 
+// message for sending to http client
 func Message(status bool, message string) Json {
 	return map[string]interface{}{"status": status, "message": message}
 }
 
+// getting respond from http client
 func Respond(w http.ResponseWriter, data Json) {
 	w.Header().Add("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(data)
 }
 
+// using md5 to create hash to encrypt keys, json doc strings
 func CreateHash(key string) string {
 	hasher := md5.New()
 	hasher.Write([]byte(key))
 	return hex.EncodeToString(hasher.Sum(nil))
 }
 
+// encypts bytes in data with aes cipher created from passphrase, or key
 func Encrypt(data []byte, passphrase string) []byte {
 	block, _ := aes.NewCipher([]byte(CreateHash(passphrase)))
 	gcm, err := cipher.NewGCM(block)
@@ -47,6 +52,8 @@ func Encrypt(data []byte, passphrase string) []byte {
 	return ciphertext
 }
 
+// decrypts encrypted bytes in data with passphrase,
+// data that is encyrpted by passphrase can only be decyrpted by the same passphrase
 func Decrypt(data []byte, passphrase string) []byte {
 	key := []byte(CreateHash(passphrase))
 	block, err := aes.NewCipher(key)
@@ -66,6 +73,9 @@ func Decrypt(data []byte, passphrase string) []byte {
 	return plaintext
 }
 
+// Maps from json file
+// reads a json file and returns a list of all json elements in json file
+// if there is only one json object present in the file, returns a singleton list
 func Mapsfjson(filepath string) []Json {
 	//open the file
 	jsonFile, err := os.Open(filepath)
@@ -76,30 +86,43 @@ func Mapsfjson(filepath string) []Json {
 
 	// read bytes in file
 	byteVal, _ := ioutil.ReadAll(jsonFile)
+	print(byteVal)
 
 	// store the rows of json file into list of maps
 	var rows []Json
 	json.Unmarshal([]byte(byteVal), &rows)
-
+	// 'special' case of only on jsoon object
+	if len(rows) == 0 {
+		var row Json
+		json.Unmarshal([]byte(byteVal), &row)
+		return []Json{row}
+	}
 	return rows
 }
 
+// Returns the value present in interface v as a string
 func Valtostr(v interface{}) string {
 	str := fmt.Sprintf("%v", v)
 	return str
 }
 
+// takes a json string and encrypts it wth encryption key
 func Encrypt_json_string(jsonStr string, encrpyt_key string) []byte {
 	json_bytes := []byte(jsonStr)
 	return Encrypt(json_bytes, encrpyt_key)
 
 }
 
+// takes a encrypted string of bytes and decrypts it with encryption key
+// returns a string of the decrypted bytes,
+// in the use cases i made, the string represents a json string
 func Decrypt_json_string(json_bytes []byte, encrpyt_key string) string {
 	// json_bytes := []byte(jsonStr)
 	return string(Decrypt(json_bytes, encrpyt_key))
 
 }
+
+// old examples of hashing and proof that hashing work
 
 // func main() {
 // 	rows := mapsfjson()

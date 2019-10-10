@@ -17,6 +17,7 @@ type Patient struct {
 	Node       string   // identifies what node this record is on
 }
 
+// initialzes db with records from a json file, assumes the db is empty
 func InitDB(init_file string) {
 	f.Println("Initializing db")
 	db := GetDB()
