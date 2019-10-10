@@ -9,12 +9,12 @@ import json
 import names  # pip install names
 
 
-def gen_ssn(length=9):
+def gen_ssn(length:int=9):
     """ Makes random string of numbers for ssn """
     return "".join([random.choice(string.digits) for i in range(length)])
 
 
-def add_country(row, country="US"):
+def add_country(row:dict, country:str="US"):
     row["Country"] = country
 
 

@@ -1,4 +1,4 @@
-module github.com/quuu/healthchain
+module HealthChain
 
 go 1.13
 

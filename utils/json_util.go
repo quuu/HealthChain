@@ -1,4 +1,4 @@
-package main
+package utils
 
 import (
 	"encoding/hex"
@@ -13,16 +13,28 @@ import (
 	"crypto/rand"
 
 	"io"
+	"net/http"
 )
 
-func createHash(key string) string {
+type Json map[string]interface{}
+
+func Message(status bool, message string) Json {
+	return map[string]interface{}{"status": status, "message": message}
+}
+
+func Respond(w http.ResponseWriter, data Json) {
+	w.Header().Add("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(data)
+}
+
+func CreateHash(key string) string {
 	hasher := md5.New()
 	hasher.Write([]byte(key))
 	return hex.EncodeToString(hasher.Sum(nil))
 }
 
-func encrypt(data []byte, passphrase string) []byte {
-	block, _ := aes.NewCipher([]byte(createHash(passphrase)))
+func Encrypt(data []byte, passphrase string) []byte {
+	block, _ := aes.NewCipher([]byte(CreateHash(passphrase)))
 	gcm, err := cipher.NewGCM(block)
 	if err != nil {
 		panic(err.Error())
@@ -35,8 +47,8 @@ func encrypt(data []byte, passphrase string) []byte {
 	return ciphertext
 }
 
-func decrypt(data []byte, passphrase string) []byte {
-	key := []byte(createHash(passphrase))
+func Decrypt(data []byte, passphrase string) []byte {
+	key := []byte(CreateHash(passphrase))
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		panic(err.Error())
@@ -54,11 +66,9 @@ func decrypt(data []byte, passphrase string) []byte {
 	return plaintext
 }
 
-type M map[string]interface{}
-
-func mapsfjson() []M {
+func Mapsfjson(filepath string) []Json {
 	//open the file
-	jsonFile, err := os.Open("hc_db_init.json")
+	jsonFile, err := os.Open(filepath)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -68,34 +78,26 @@ func mapsfjson() []M {
 	byteVal, _ := ioutil.ReadAll(jsonFile)
 
 	// store the rows of json file into list of maps
-	var rows []M
+	var rows []Json
 	json.Unmarshal([]byte(byteVal), &rows)
 
 	return rows
 }
 
-func valtostr(v interface{}) string {
+func Valtostr(v interface{}) string {
 	str := fmt.Sprintf("%v", v)
 	return str
 }
 
-func db_key(patient_record M) string {
-	fname := valtostr(patient_record["full_name"])
-	ssn := valtostr(patient_record["ssn"])
-	dob := valtostr(patient_record["dob"])
-	country := valtostr(patient_record["Country"])
-	return fname + ssn + dob + country
-}
-
-func encrypt_json_string(jsonStr string, encrpyt_key string) []byte {
+func Encrypt_json_string(jsonStr string, encrpyt_key string) []byte {
 	json_bytes := []byte(jsonStr)
-	return encrypt(json_bytes, encrpyt_key)
+	return Encrypt(json_bytes, encrpyt_key)
 
 }
 
-func decrypt_json_string(json_bytes []byte, encrpyt_key string) string {
+func Decrypt_json_string(json_bytes []byte, encrpyt_key string) string {
 	// json_bytes := []byte(jsonStr)
-	return string(decrypt(json_bytes, encrpyt_key))
+	return string(Decrypt(json_bytes, encrpyt_key))
 
 }
 
