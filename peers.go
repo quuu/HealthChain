@@ -13,8 +13,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// PeersService is a struct used to manage concurrency and a list of peers
-type PeersList struct {
+// PeerDriver is a struct used to manage concurrency and a list of peers
+type PeerDriver struct {
 	uuid  string
 	m     *sync.Mutex
 	peers map[string]*Peer
@@ -34,7 +34,17 @@ func recordHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Records go here"))
 }
 
-func discovery() {
+func CreatePeerDriver() *PeerDriver {
+	pd := &PeerDriver{
+		m:     &sync.Mutex{},
+		peers: map[string]*Peer{},
+	}
+
+	return pd
+
+}
+
+func (pd *PeerDriver) Discovery() {
 
 	// initialize all the endpoints to serve publicly
 	r := chi.NewRouter()
@@ -58,6 +68,9 @@ func discovery() {
 
 	// create a unique identifier for this node
 	u := uuid.NewV4()
+
+	// save it
+	pd.uuid = u.String()
 
 	// register it with the unique name
 	go func() {
@@ -91,12 +104,6 @@ func discovery() {
 		return
 	}
 
-	ps := &PeersList{
-		uuid:  u.String(),
-		m:     &sync.Mutex{},
-		peers: map[string]*Peer{},
-	}
-
 	// HANDLE GLOBAL ENTRIES WITH CLOUD HERE
 	// TODO
 
@@ -105,30 +112,34 @@ func discovery() {
 	for {
 		select {
 		case entry := <-entries:
-			handleEntry(ps, entry)
+			pd.handleEntry(entry)
 		case <-ticker:
-			fetchRecords()
+			pd.fetchRecords()
 		}
 	}
 }
 
 // function responsible for receiving a new peer
 // adding it to the list of peers
-func handleEntry(ps *PeersList, entry *zeroconf.ServiceEntry) {
-	if entry.Instance == ps.uuid {
+func (pd *PeerDriver) handleEntry(entry *zeroconf.ServiceEntry) {
+	if entry.Instance == pd.uuid {
 		log.Println("found self")
 		return
 	}
 	log.Println("got an entry")
 	log.Println(entry)
-	ps.m.Lock()
-	defer ps.m.Unlock()
+	pd.m.Lock()
+	defer pd.m.Unlock()
+
+	// parse entry
+	//add it to PeerDriver
 }
 
 // function responsible for asking peers for records
 // TODO
 // only fetch on a need to use basis
 // currently set to fetch every 1 second when theres no new entries
-func fetchRecords() {
+func (pd *PeerDriver) fetchRecords() {
+
 	log.Println("currently fetching records ")
 }

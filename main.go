@@ -10,7 +10,8 @@ func main() {
 
 	fmt.Println("Starting discovery")
 
-	discovery()
+	pd := CreatePeerDriver()
+	pd.Discovery()
 
 	api()
 
