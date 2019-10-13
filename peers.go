@@ -17,6 +17,7 @@ import (
 type PeerDriver struct {
 	uuid  string
 	m     *sync.Mutex
+	self  *Peer
 	peers map[string]*Peer
 }
 
@@ -97,6 +98,7 @@ func (pd *PeerDriver) Discovery() {
 		return
 	}
 
+	// get the running go routine for registration
 	ctx := context.Background()
 	err = resolver.Browse(ctx, "_healthchain._tcp", "local.", entries)
 	if err != nil {
@@ -122,17 +124,46 @@ func (pd *PeerDriver) Discovery() {
 // function responsible for receiving a new peer
 // adding it to the list of peers
 func (pd *PeerDriver) handleEntry(entry *zeroconf.ServiceEntry) {
+
+	// if foudn self, add addresses if not already in the list
 	if entry.Instance == pd.uuid {
+		pd.m.Lock()
+		pd.self = &Peer{
+			ID:   entry.Instance,
+			Port: entry.Port,
+		}
+		pd.self.Addresses = append(pd.self.Addresses, entry.AddrIPv6...)
+		pd.self.Addresses = append(pd.self.Addresses, entry.AddrIPv4...)
+
+		pd.m.Unlock()
 		log.Println("found self")
 		return
 	}
+
+	//got a unique entry
 	log.Println("got an entry")
-	log.Println(entry)
+	p := &Peer{
+		ID:   entry.Instance,
+		Port: entry.Port,
+	}
+	p.Addresses = append(p.Addresses, entry.AddrIPv6...)
+	p.Addresses = append(p.Addresses, entry.AddrIPv4...)
+
 	pd.m.Lock()
 	defer pd.m.Unlock()
 
-	// parse entry
-	//add it to PeerDriver
+	// already discovered, just add more addresses
+	if peer, ok := pd.peers[p.ID]; ok {
+
+		log.Printf("peer %s already discovered", p.ID)
+		peer.Addresses = p.Addresses
+		return
+	}
+
+	// found completely new one
+	log.Printf("found new peer %+v", p)
+	pd.peers[p.ID] = p
+
 }
 
 // function responsible for asking peers for records
