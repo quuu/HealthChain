@@ -1,6 +1,27 @@
-new Vue({
-    el: '#app'
+var app = new Vue({
+    el: '#app',
+    data: {
+        showForm: true,
+        firstname: null,
+        lastname: null,
+        country: null,
+        ssn: null
+    },
+    methods:{
+        getRecords: function(event){
+           console.log("CLICKED");
+            event.preventDefault();
+            let formData = {
+               firstname: this.firstname,
+                lastname: this.lastname,
+                country: this.country,
+                ssn: this.ssn
+            }
+            console.log(formData)
+        }
+    }
 })
+
 
 
 function getHealthData(data){
