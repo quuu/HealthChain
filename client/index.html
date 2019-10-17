@@ -1,0 +1,107 @@
+<!doctype html>
+
+<html lang="en"  class="has-navbar-fixed-top">
+<head>
+    <meta charset="utf-8">
+
+    <title>HealthChain</title>
+
+    <script src="vue.js"></script>
+    
+    <!--Icon Package-->
+    <link rel="stylesheet" href="https://cdn.materialdesignicons.com/2.5.94/css/materialdesignicons.min.css">
+    <!-- Buefy CSS -->
+    <link rel="stylesheet" href="buefy.min.css">
+    <!--Supplemental CSS-->
+    <link rel="stylesheet" href="hc.css">
+    
+
+</head>
+<body >
+  <div id="app">
+    <b-navbar class="navbar is-fixed-top has-background-light">
+      <template slot="brand">
+        <b-navbar-item href="index.html">
+          <img
+            src="g3947.png"
+            alt="HealthChain logo"
+          >
+        </b-navbar-item>
+        </template>
+        <template slot="start">
+            <b-navbar-item href="index.html">
+                <b-button type="is-danger" outlined>Home</b-button>
+            </b-navbar-item>
+            <b-navbar-item href="record_request.html">
+                <b-button type="is-danger" outlined>Get Records</b-button>
+            </b-navbar-item>
+        </template>
+        <template slot="end">
+            
+            <b-navbar-item href="https://github.com/quuu/HealthChain">
+              <b-button size="is-medium"
+                icon-left="github-circle">
+                
+            </b-button>
+            </b-navbar-item>
+             
+           
+        </template>
+              
+    </b-navbar>
+
+    <div class='column'>   
+        <div class='card-content is-flex is-horizontal-center'>
+            <img src='g3884.png'>
+        </div>
+    </div>
+
+            
+    <div class="hero-body">
+                
+        <h1 class="title">Welcome to HealthChain!</h1>
+        <h2 class="subtitle">A decentralized health record store with encrypted client records</h2>
+              
+
+    </div>
+    <div class="hero-body">    
+        <h1 class="title">What is HealthChain?</h1>
+        <h2 class="subtitle">HealthChain is a proof of concept for a decentralized health record system. Our aim is to give health professionals rapid and easy access to their patients health records, regardless of location. This is done by assigning a private key to each person in the database, which when entered will unlock access to the patients medical records.</h2>
+                          
+    </div>
+
+    <div class="tile is-ancestor">
+            <div class= "tile is-1"></div>
+            <div class="tile is-10 is-vertical is-child box">
+                    <h2 class="title is-size-4 ">Consider the scenario:</h1>
+                    <p class="box has-background-light">Tom from the US is vacationing in Greece. While there he encounters an injury and is sent to the hospital. 
+                            Before a Doctor can provide him help, they may need to get his medical records mailed from home. 
+                            Instead, the doctor can use Tom's private key to get access to his health information. 
+                            With quick access to these records, the Doctor can more efficiently and rapidly treat Tom so that 
+                            he can recover and enjoy his vacation.</p>
+            </div>
+            <div class="tile">
+              <!-- This tile will take the rest: 2/3 -->
+            </div>
+    </div>
+  
+    
+    
+    
+    <footer class="footer ">
+        <div class="content has-text-centered">
+          <p>
+            <strong>HealthChain</strong>, a project for Software Documentation and Design at Rensselaer Polytechnic Institute. The source code is licensed
+            <a href="http://opensource.org/licenses/mit-license.php">MIT</a>.
+          </p>
+        </div>
+      </footer>
+
+  </div>
+    
+  <!-- Buefy JavaScript -->
+  <script src="buefy.min.js"></script>
+  <!--Supplemental JS-->
+  <script src="index.js"></script>
+</body>
+</html>

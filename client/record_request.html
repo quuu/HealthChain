@@ -1,0 +1,141 @@
+<!doctype html>
+
+<html lang="en"  class="has-navbar-fixed-top">
+<head>
+    <meta charset="utf-8">
+
+    <title>HealthChain</title>
+
+    <script src="vue.js"></script>
+    
+    <!--Icon Package-->
+    <link rel="stylesheet" href="https://cdn.materialdesignicons.com/2.5.94/css/materialdesignicons.min.css">
+
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css">
+
+    <!-- Buefy CSS -->
+    <link rel="stylesheet" href="buefy.min.css">
+    <!--Supplemental CSS-->
+    <link rel="stylesheet" href="hc.css">
+    
+
+</head>
+<body >
+  <div id="app">
+    <b-navbar class="navbar is-fixed-top has-background-light">
+      <template slot="brand">
+        <b-navbar-item href="index.html">
+          <img
+            src="g3947.png"
+            alt="HealthChain logo"
+          >
+        </b-navbar-item>
+        </template>
+        <template slot="start">
+            <b-navbar-item href="index.html">
+                <b-button type="is-danger" outlined>Home</b-button>
+            </b-navbar-item>
+            <b-navbar-item href="record_request.html">
+                <b-button type="is-danger" outlined>Get Records</b-button>
+            </b-navbar-item>
+        </template>
+        <template slot="end">
+            
+            <b-navbar-item href="https://github.com/quuu/HealthChain">
+              <b-button size="is-medium"
+                icon-left="github-circle">
+                
+            </b-button>
+          </b-navbar-item>
+        </template>
+              
+    </b-navbar>     
+    
+      <div class="hero-body">
+          <div class="container ">
+            <div class="columns is-5-tablet is-4-desktop is-3-widescreen">
+                <div class="column">
+                    <form class="box has-background-light" action="return false">
+                        <div class="field has-text-centered">
+                            <img src="g3884.png" width="400">
+                        </div>
+                        <p class="title is-3 has-text-centered">Health Records Request</p>
+                        <div class="columns"> 
+                          <div class="field column">
+                            <label class="label">First Name</label>
+                            <div class="control">
+                              <input class="input" type="text" v-model="firstname" placeholder="John">
+                            </div>
+                          </div>
+                          <div class="field column">
+                            <label class="label">Last Name</label>
+                            <div class="control">
+                              <input class="input" type="text" v-model="lastname" placeholder="Doe">
+                            </div>
+                          </div>
+                        </div>
+                        <div class = "columns">
+                          <div class="field column">
+                            <p class="control has-icons-left">
+                              <span class="select">
+                                <select v-model="country">
+                                  <option value="" selected>Country</option>
+                                  <option value ="USA">United States (USA)</option>
+                                  <option value="GBR">United Kingdom (GBR)</option>
+                                  <option value="DEU">Germany (DEU)</option>
+                                </select>
+                              </span>
+                              <span class="icon is-small is-left">
+                                <i class="fas fa-globe"></i>
+                              </span>
+                            </p>
+                          </div>
+                          <div class="field column">
+                              <p class="control has-icons-left">
+                                  <input class="input" type="password" v-model="ssn" placeholder="SSN">
+                                  <span class="icon is-small is-left">
+                                    <i class="fas fa-lock"></i>
+                                  </span>
+                                </p>
+                          </div>
+                          <div class="field column">
+                            <button class="button is-pulled-right">
+                              Clear Form
+                            </button>
+                          </div>
+                          <div class="field column">
+                              <button class="button is-danger" v-on:click="getRecords">
+                                  Request Records
+                              </button>
+                          </div>
+                        </div>
+                  
+                    </form>
+                </div>
+            </div>
+          </div>
+      </div>
+  
+
+      <p v-if="firstname">First Name: {{firstname}}</p>
+      <p v-if="lastname">Last Name: {{lastname}}</p>
+      <p v-if="country">Country: {{country}} </p>
+      <p v-if="ssn">SSN: {{ssn}}</p>
+    
+    <footer class="footer ">
+        <div class="content has-text-centered">
+          <p>
+            <strong>HealthChain</strong>, a project for Software Documentation and Design at Rensselaer Polytechnic Institute. The source code is licensed
+            <a href="http://opensource.org/licenses/mit-license.php">MIT</a>.
+          </p>
+        </div>
+      </footer>
+
+  </div>
+    
+  <!-- Buefy JavaScript -->
+  <script src="buefy.min.js"></script>
+  <!--Supplemental JS-->
+  <script src="index.js"></script>
+</body>
+</html>
