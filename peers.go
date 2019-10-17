@@ -1,64 +1,176 @@
 package main
 
 import (
-	// "fmt"
-	"flag"
-	"time"
-
-	// "os"
+	"context"
 	"net"
 	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
+	"sync"
+	"time"
 
 	"github.com/go-chi/chi"
 	"github.com/grandcat/zeroconf"
+	uuid "github.com/satori/go.uuid"
 	log "github.com/sirupsen/logrus"
 )
 
-var (
-	name     = flag.String("name", "GoZeroconfGo", "The name for the service.")
-	service  = flag.String("service", "_workstation._tcp", "Set the service type of the new service.")
-	domain   = flag.String("domain", "local.", "Set the network domain. Default should be fine.")
-	port     = flag.Int("port", 42424, "Set the port the service is listening to.")
-	waitTime = flag.Int("wait", 10, "Duration in [s] to publish service for.")
-)
+// PeerDriver is a struct used to manage concurrency and a list of peers
+type PeerDriver struct {
+	uuid  string
+	m     *sync.Mutex
+	self  *Peer
+	peers map[string]*Peer
+}
 
-func discovery() {
+// Peer is a helper struct to store information about the peer
+type Peer struct {
+	ID        string
+	Addresses []net.IP
+	Port      int
+}
+
+// function that handles displaying all the messages
+// TODO
+// integrate with the storage
+func recordHandler(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Records go here"))
+}
+
+func CreatePeerDriver() *PeerDriver {
+	pd := &PeerDriver{
+		m:     &sync.Mutex{},
+		peers: map[string]*Peer{},
+	}
+
+	return pd
+
+}
+
+func (pd *PeerDriver) Discovery() {
+
+	// initialize all the endpoints to serve publicly
+	r := chi.NewRouter()
+	r.Get("/records", recordHandler)
+
 	listener, err := net.Listen("tcp", ":0")
 	if err != nil {
 		log.WithError(err).Error("unable to create listener")
 		return
 	}
-	port := listener.Addr().(*net.TCPAddr).Port
-	log.Printf("Listening at %s", listener.Addr())
 
-	r := chi.NewRouter()
-	//start the server in the background
+	// save the port for registering zeroconf
+	port := listener.Addr().(*net.TCPAddr).Port
+
+	// serve the public record
+	log.Debugf("PeerManager listening at %s", listener.Addr())
 	go func() {
 		err := http.Serve(listener, r)
-		log.WithError(err).Error("unable to listen and serve")
+		log.WithError(err).Error("PeerManager unable to listen and serve")
 	}()
 
-	// register service
-	server, err := zeroconf.Register("HealthChain", "_healthchain._tcp", "local.", port, []string{"txtv=0", "lo=1", "la=2"}, nil)
+	// create a unique identifier for this node
+	u := uuid.NewV4()
+
+	// save it
+	pd.uuid = u.String()
+
+	// register it with the unique name
+	go func() {
+		for {
+			server, err := zeroconf.Register(u.String(), "_healthchain._tcp", "local.", port, nil, nil)
+			if err != nil {
+				log.Fatal(err)
+				continue
+			}
+			<-time.After(time.Second * 5)
+			server.Shutdown()
+		}
+	}()
+
+	log.Printf("started listening at %d", port)
+
+	// now browse for other services
+
+	// will store the new peers discovered
+	entries := make(chan *zeroconf.ServiceEntry)
+	resolver, nil := zeroconf.NewResolver(nil)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
+		return
 	}
 
-	defer server.Shutdown()
-
-	// Clean exit.
-	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
-	select {
-	case <-sig:
-		// Exit by user
-	case <-time.After(time.Second * 120):
-		// Exit by timeout
+	// get the running go routine for registration
+	ctx := context.Background()
+	err = resolver.Browse(ctx, "_healthchain._tcp", "local.", entries)
+	if err != nil {
+		log.WithError(err).Error("Unable to browse")
+		return
 	}
 
-	log.Println("Shutting down.")
+	// HANDLE GLOBAL ENTRIES WITH CLOUD HERE
+	// TODO
 
+	// inifinte loop waiting for more entries
+	ticker := time.Tick(1 * time.Second)
+	for {
+		select {
+		case entry := <-entries:
+			pd.handleEntry(entry)
+		case <-ticker:
+			pd.fetchRecords()
+		}
+	}
+}
+
+// function responsible for receiving a new peer
+// adding it to the list of peers
+func (pd *PeerDriver) handleEntry(entry *zeroconf.ServiceEntry) {
+
+	// if foudn self, add addresses if not already in the list
+	if entry.Instance == pd.uuid {
+		pd.m.Lock()
+		pd.self = &Peer{
+			ID:   entry.Instance,
+			Port: entry.Port,
+		}
+		pd.self.Addresses = append(pd.self.Addresses, entry.AddrIPv6...)
+		pd.self.Addresses = append(pd.self.Addresses, entry.AddrIPv4...)
+
+		pd.m.Unlock()
+		log.Println("found self")
+		return
+	}
+
+	//got a unique entry
+	log.Println("got an entry")
+	p := &Peer{
+		ID:   entry.Instance,
+		Port: entry.Port,
+	}
+	p.Addresses = append(p.Addresses, entry.AddrIPv6...)
+	p.Addresses = append(p.Addresses, entry.AddrIPv4...)
+
+	pd.m.Lock()
+	defer pd.m.Unlock()
+
+	// already discovered, just add more addresses
+	if peer, ok := pd.peers[p.ID]; ok {
+
+		log.Printf("peer %s already discovered", p.ID)
+		peer.Addresses = p.Addresses
+		return
+	}
+
+	// found completely new one
+	log.Printf("found new peer %+v", p)
+	pd.peers[p.ID] = p
+
+}
+
+// function responsible for asking peers for records
+// TODO
+// only fetch on a need to use basis
+// currently set to fetch every 1 second when theres no new entries
+func (pd *PeerDriver) fetchRecords() {
+
+	log.Println("currently fetching records ")
 }
