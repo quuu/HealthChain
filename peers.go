@@ -35,6 +35,10 @@ func recordHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Records go here"))
 }
 
+func peerHandler(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("peers go here"))
+}
+
 func CreatePeerDriver() *PeerDriver {
 	pd := &PeerDriver{
 		m:     &sync.Mutex{},
@@ -50,6 +54,7 @@ func (pd *PeerDriver) Discovery() {
 	// initialize all the endpoints to serve publicly
 	r := chi.NewRouter()
 	r.Get("/records", recordHandler)
+	r.Get("/peers", peerHandler)
 
 	listener, err := net.Listen("tcp", ":0")
 	if err != nil {
