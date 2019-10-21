@@ -1,11 +1,15 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"net"
 	"net/http"
 	"sync"
 	"time"
+
+	"strconv"
 
 	"github.com/go-chi/chi"
 	"github.com/grandcat/zeroconf"
@@ -17,7 +21,7 @@ import (
 type PeerDriver struct {
 	uuid  string
 	m     *sync.Mutex
-	self  *Peer
+	me    *Peer
 	peers map[string]*Peer
 }
 
@@ -35,6 +39,10 @@ func recordHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Records go here"))
 }
 
+func peerHandler(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("peers go here"))
+}
+
 func CreatePeerDriver() *PeerDriver {
 	pd := &PeerDriver{
 		m:     &sync.Mutex{},
@@ -50,6 +58,7 @@ func (pd *PeerDriver) Discovery() {
 	// initialize all the endpoints to serve publicly
 	r := chi.NewRouter()
 	r.Get("/records", recordHandler)
+	r.Get("/peers", peerHandler)
 
 	listener, err := net.Listen("tcp", ":0")
 	if err != nil {
@@ -109,6 +118,48 @@ func (pd *PeerDriver) Discovery() {
 	// HANDLE GLOBAL ENTRIES WITH CLOUD HERE
 	// TODO
 
+	globalEntries := make(chan *Peer)
+	go func() {
+		c := http.Client{
+			Timeout: 5 * time.Second,
+		}
+		ticker := time.Tick(time.Second * 5)
+		for range ticker {
+			pd.m.Lock()
+			/*
+				if pd.me == nil {
+					continue
+				}
+
+			*/
+			b, err := json.Marshal(pd.me)
+			pd.m.Unlock()
+			if err != nil {
+				log.WithError(err).Error("unable to marshal")
+				continue
+			}
+			resp, err := c.Post("https://trans-dogfish-253118.appspot.com/notify", "application/json", bytes.NewBuffer(b))
+			if err != nil {
+				log.WithError(err).Error("unable to post")
+				continue
+			}
+
+			peers := []*Peer{}
+			dec := json.NewDecoder(resp.Body)
+			// log.Println(dec)
+			err = dec.Decode(&peers)
+			// log.Println(peers)
+			if err != nil {
+				log.WithError(err).Error("unable to decode peers")
+				continue
+			}
+			for _, peer := range peers {
+				log.Println(peer.ID + " " + strconv.Itoa(peer.Port))
+				globalEntries <- peer
+			}
+		}
+	}()
+
 	// inifinte loop waiting for more entries
 	ticker := time.Tick(1 * time.Second)
 	for {
@@ -117,8 +168,14 @@ func (pd *PeerDriver) Discovery() {
 			pd.handleEntry(entry)
 		case <-ticker:
 			pd.fetchRecords()
+		case entry := <-globalEntries:
+			pd.handleGlobalEntry(entry)
 		}
 	}
+}
+
+func (pd *PeerDriver) handleGlobalEntry(entry *Peer) {
+
 }
 
 // function responsible for receiving a new peer
@@ -128,12 +185,14 @@ func (pd *PeerDriver) handleEntry(entry *zeroconf.ServiceEntry) {
 	// if foudn self, add addresses if not already in the list
 	if entry.Instance == pd.uuid {
 		pd.m.Lock()
-		pd.self = &Peer{
+		pd.me = &Peer{
 			ID:   entry.Instance,
 			Port: entry.Port,
 		}
-		pd.self.Addresses = append(pd.self.Addresses, entry.AddrIPv6...)
-		pd.self.Addresses = append(pd.self.Addresses, entry.AddrIPv4...)
+
+		// more addresses for self
+		pd.me.Addresses = append(pd.me.Addresses, entry.AddrIPv6...)
+		pd.me.Addresses = append(pd.me.Addresses, entry.AddrIPv4...)
 
 		pd.m.Unlock()
 		log.Println("found self")
@@ -173,4 +232,5 @@ func (pd *PeerDriver) handleEntry(entry *zeroconf.ServiceEntry) {
 func (pd *PeerDriver) fetchRecords() {
 
 	log.Println("currently fetching records ")
+
 }

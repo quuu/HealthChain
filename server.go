@@ -2,13 +2,14 @@ package main
 
 import (
 	"net/http"
-	"os"
-	"path/filepath"
+	//"os"
+	//"path/filepath"
 	"strings"
 
 	"github.com/go-chi/chi"
 )
 
+/*
 func main() {
 	r := chi.NewRouter()
 	workDir, _ := os.Getwd()
@@ -18,6 +19,7 @@ func main() {
 	http.ListenAndServe(":3333", r)
 }
 
+*/
 // FileServer conveniently sets up a http.FileServer handler to serve
 // static files from a http.FileSystem.
 func FileServer(r chi.Router, path string, root http.FileSystem) {
