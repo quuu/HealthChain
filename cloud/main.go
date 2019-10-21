@@ -13,6 +13,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// Peer struct used to store information about individual
 type Peer struct {
 	Addresses []net.IP
 	Port      int
@@ -20,19 +21,24 @@ type Peer struct {
 	Expires   time.Time
 }
 
-type DiscoveryManager struct {
+// DiscoveryDriver struct is used
+type DiscoveryDriver struct {
 	m     *sync.Mutex
 	peers map[string]*Peer
 }
 
 func main() {
-	dm := &DiscoveryManager{
+	dm := &DiscoveryDriver{
 		m:     &sync.Mutex{},
 		peers: map[string]*Peer{},
 	}
 
 	r := chi.NewRouter()
+
+	// route responsible for saving a new client's ip addresses
 	r.Post("/notify", dm.notifyHandler)
+
+	// route responsible for debugging and seeing the active clients in the network
 	r.Get("/fetch", dm.fetchHandler)
 
 	port := os.Getenv("PORT")
@@ -45,7 +51,9 @@ func main() {
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), r))
 }
 
-func (dm *DiscoveryManager) fetchHandler(w http.ResponseWriter, r *http.Request) {
+func (dm *DiscoveryDriver) fetchHandler(w http.ResponseWriter, r *http.Request) {
+
+	// simply decode the peers and push it to http responsewriter
 	enc := json.NewEncoder(w)
 	err := enc.Encode(dm.peers)
 	if err != nil {
@@ -56,9 +64,10 @@ func (dm *DiscoveryManager) fetchHandler(w http.ResponseWriter, r *http.Request)
 
 }
 
-func (dm *DiscoveryManager) notifyHandler(w http.ResponseWriter, r *http.Request) {
+func (dm *DiscoveryDriver) notifyHandler(w http.ResponseWriter, r *http.Request) {
 	peer := &Peer{}
 
+	// set up getting the peer information to save to the driver
 	dec := json.NewDecoder(r.Body)
 	err := dec.Decode(peer)
 	if err != nil {
@@ -67,10 +76,13 @@ func (dm *DiscoveryManager) notifyHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	// set the expiration for 30 seconds if they don't communicate back
 	peer.Expires = time.Now().Add(time.Second * 30)
 	dm.m.Lock()
 	dm.peers[peer.ID] = peer
 	peers := []*Peer{}
+
+	// check for dead peers, clear out the storage
 	for peerID, peer := range dm.peers {
 		if !peer.Expires.After(time.Now()) {
 			delete(dm.peers, peerID)
@@ -81,6 +93,7 @@ func (dm *DiscoveryManager) notifyHandler(w http.ResponseWriter, r *http.Request
 
 	dm.m.Unlock()
 
+	// write to the endpoint the list of all clients
 	enc := json.NewEncoder(w)
 	err = enc.Encode(peers)
 	if err != nil {

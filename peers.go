@@ -189,6 +189,8 @@ func (pd *PeerDriver) handleEntry(entry *zeroconf.ServiceEntry) {
 			ID:   entry.Instance,
 			Port: entry.Port,
 		}
+
+		// more addresses for self
 		pd.me.Addresses = append(pd.me.Addresses, entry.AddrIPv6...)
 		pd.me.Addresses = append(pd.me.Addresses, entry.AddrIPv4...)
 
@@ -230,4 +232,5 @@ func (pd *PeerDriver) handleEntry(entry *zeroconf.ServiceEntry) {
 func (pd *PeerDriver) fetchRecords() {
 
 	log.Println("currently fetching records ")
+
 }
