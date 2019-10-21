@@ -1,20 +1,40 @@
 package main
 
-// [START import]
 import (
+	"encoding/json"
 	"fmt"
-	"log"
+	"net"
 	"net/http"
 	"os"
+	"sync"
+	"time"
+
+	"github.com/go-chi/chi"
+	log "github.com/sirupsen/logrus"
 )
 
-// [END import]
-// [START main_func]
+type Peer struct {
+	Addresses []net.IP
+	Port      int
+	ID        string
+	Expires   time.Time
+}
+
+type DiscoveryManager struct {
+	m     *sync.Mutex
+	peers map[string]*Peer
+}
 
 func main() {
-	http.HandleFunc("/", indexHandler)
+	dm := &DiscoveryManager{
+		m:     &sync.Mutex{},
+		peers: map[string]*Peer{},
+	}
 
-	// [START setting_port]
+	r := chi.NewRouter()
+	r.Post("/notify", dm.notifyHandler)
+	r.Get("/fetch", dm.fetchHandler)
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
@@ -22,19 +42,49 @@ func main() {
 	}
 
 	log.Printf("Listening on port %s", port)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), nil))
-	// [END setting_port]
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), r))
 }
 
-// [END main_func]
+func (dm *DiscoveryManager) fetchHandler(w http.ResponseWriter, r *http.Request) {
+	enc := json.NewEncoder(w)
+	err := enc.Encode(dm.peers)
+	if err != nil {
 
-// [START indexHandler]
+		log.WithError(err).Error("unable to encode")
+		http.Error(w, "unable to encode", http.StatusInternalServerError)
+	}
 
-// indexHandler responds to requests with our greeting.
-func indexHandler(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/" {
-		http.NotFound(w, r)
+}
+
+func (dm *DiscoveryManager) notifyHandler(w http.ResponseWriter, r *http.Request) {
+	peer := &Peer{}
+
+	dec := json.NewDecoder(r.Body)
+	err := dec.Decode(peer)
+	if err != nil {
+		log.WithError(err).Error("unable to decode")
+		http.Error(w, "unable to decode", http.StatusInternalServerError)
 		return
 	}
-	fmt.Fprint(w, "Hello, World!")
+
+	peer.Expires = time.Now().Add(time.Second * 30)
+	dm.m.Lock()
+	dm.peers[peer.ID] = peer
+	peers := []*Peer{}
+	for peerID, peer := range dm.peers {
+		if !peer.Expires.After(time.Now()) {
+			delete(dm.peers, peerID)
+			continue
+		}
+		peers = append(peers, peer)
+	}
+
+	dm.m.Unlock()
+
+	enc := json.NewEncoder(w)
+	err = enc.Encode(peers)
+	if err != nil {
+		log.WithError(err).Error("unable to encode")
+		http.Error(w, "unable to encode", http.StatusInternalServerError)
+	}
 }

@@ -15,5 +15,4 @@
 # [START getting_started_auth_app_yaml]
 runtime: go112
 
-main: ./main.go
 # [END getting_started_auth_app_yaml]
