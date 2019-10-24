@@ -1,3 +1,4 @@
+
 <template>
   <div id="app">
     <b-navbar class="navbar is-fixed-top has-background-light">
@@ -28,20 +29,26 @@
              
            
         </template>
-              
+        
     </b-navbar>
+    <HealthChainInfo/>
   </div>
 </template>
 
 <script>
+import HealthChainInfo from './components/HealthChainInfo.vue'
 
 export default {
   name: 'app',
   components: {
-
+    HealthChainInfo
   }
 }
 </script>
+
+<style lang="css">
+    @import '../node_modules/bulma/css/bulma.css';
+</style>
 
 <style>
 #app {
