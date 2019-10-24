@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/asdine/storm/v3"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	log "github.com/sirupsen/logrus"
@@ -44,9 +45,21 @@ func AllRecordsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(b)
 }
 
+func NewRecordHandler(w http.ResponseWriter, r *http.Request) {
+
+	r.ParseForm()
+
+	for _, element := range r.Form {
+		log.Println(element)
+	}
+}
 func api() {
 
 	r := chi.NewRouter()
+
+	db, _ := storm.Open("my.db")
+
+	defer db.Close()
 
 	r.Use(middleware.DefaultCompress)
 
@@ -57,6 +70,8 @@ func api() {
 	r.Get("/all_reocrds", AllRecordsHandler)
 
 	r.Get("/peers", PeersHandler)
+
+	r.Post("/new_record", NewRecordHandler)
 
 	err := http.ListenAndServe(":3000", r)
 	if err != nil {
