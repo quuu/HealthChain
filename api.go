@@ -1,7 +1,14 @@
 package main
 
 import (
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/md5"
+	"crypto/rand"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
+	"io"
 	"net/http"
 	"time"
 
@@ -51,6 +58,92 @@ func (a *API) AllRecordsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(b)
 }
 
+func (a *API) StoreRecord(w http.ResponseWriter, r *http.Request) {
+
+	r.ParseForm()
+
+	first := r.Form.Get("first")
+	last := r.Form.Get("last")
+	country := r.Form.Get("country")
+	code := r.Form.Get("code")
+	h := sha256.New()
+	h.Write([]byte(first + last + country + code))
+	w.Write([]byte(first + last + country + code))
+
+	// get the hash of the user
+	hash_key := GetHash(first, last, country, code)
+
+	//get the messaage
+	appointment_info := r.Form.Get("appointment_info")
+
+	// get the current date
+
+	rec := &Record{
+		Message: []byte(appointment_info),
+		Date:    time.Now(),
+	}
+
+	b, err := json.Marshal(rec)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	log.Println(string(b))
+	encrypted := Encrypt(hash_key, b)
+	log.Println(string(encrypted))
+
+	decrypted := Decrypt(hash_key, encrypted)
+	log.Println(string(decrypted))
+
+}
+
+func Encrypt(block cipher.Block, data []byte) []byte {
+	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		panic(err.Error())
+	}
+	nonce := make([]byte, gcm.NonceSize())
+	if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
+		panic(err.Error())
+	}
+	cipher_text := gcm.Seal(nonce, nonce, data, nil)
+	return cipher_text
+}
+
+func Decrypt(block cipher.Block, data []byte) []byte {
+	gcm, err := cipher.NewGCM((block))
+	if err != nil {
+		panic(err.Error())
+	}
+	nonceSize := gcm.NonceSize()
+	nonce, cipher_text := data[:nonceSize], data[nonceSize:]
+	plaintext, err := gcm.Open(nil, nonce, cipher_text, nil)
+	if err != nil {
+		panic(err.Error())
+	}
+	return plaintext
+}
+
+func GetHash(first string, last string, country string, code string) cipher.Block {
+
+	hasher := md5.New()
+	hasher.Write([]byte(first + last + country + code))
+	encoding := hex.EncodeToString(hasher.Sum(nil))
+
+	block, _ := aes.NewCipher([]byte(encoding))
+
+	return block
+	// gcm, err := cipher.NewGCM(block)
+	// if err != nil {
+	// 	panic(err.Error())
+	// }
+
+	// nonce := make([]byte, gcm.NonceSize())
+	// if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
+	// 	panic(err.Error())
+	// }
+	// cipherText := gcm.Seal(nonce, nonce, )
+}
 func (a *API) NewRecordHandler(w http.ResponseWriter, r *http.Request) {
 
 	r.ParseForm()
@@ -60,29 +153,28 @@ func (a *API) NewRecordHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func NewAPI() *API {
+func NewAPI(store *storm.DB) *API {
 
 	// initialize a new api
-	a := &API{}
+	a := &API{
+		store: store,
+	}
 
 	log.Printf("initializing api \n")
 
 	r := chi.NewRouter()
 
 	// create the database to reference
-	db, _ := storm.Open("my.db")
-
-	a.store = db
 
 	rec := Record{ID: "someoneelse", Message: []byte("testing"), Date: time.Now()}
 
-	err := db.Save(&rec)
+	err := store.Save(&rec)
 	if err != nil {
 		log.Printf("errored at %s", err)
 	}
 
 	rec2 := Record{ID: "me", Message: []byte("asdf"), Date: time.Now()}
-	err = db.Save(&rec2)
+	err = store.Save(&rec2)
 	if err != nil {
 		log.Printf("errored at %s", err)
 	}
@@ -97,7 +189,7 @@ func NewAPI() *API {
 
 	r.Get("/peers", a.PeersHandler)
 
-	r.Post("/new_record", a.NewRecordHandler)
+	r.Post("/new_record", a.StoreRecord)
 
 	a.r = r
 

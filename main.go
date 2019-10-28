@@ -3,6 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
+
+	"github.com/asdine/storm/v3"
 )
 
 func main() {
@@ -13,7 +15,8 @@ func main() {
 	//pd := CreatePeerDriver()
 	//pd.Discovery()
 
-	api := NewAPI()
+	db, _ := storm.Open("my.db")
+	api := NewAPI(db)
 
 	api.Run()
 
