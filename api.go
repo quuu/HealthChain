@@ -5,7 +5,6 @@ import (
 	"crypto/cipher"
 	"crypto/md5"
 	"crypto/rand"
-	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"io"
@@ -20,6 +19,7 @@ import (
 
 // API
 type API struct {
+	me    string
 	str   string
 	store *storm.DB
 	r     http.Handler
@@ -66,9 +66,6 @@ func (a *API) StoreRecord(w http.ResponseWriter, r *http.Request) {
 	last := r.Form.Get("last")
 	country := r.Form.Get("country")
 	code := r.Form.Get("code")
-	h := sha256.New()
-	h.Write([]byte(first + last + country + code))
-	w.Write([]byte(first + last + country + code))
 
 	// get the hash of the user
 	hash_key := GetHash(first, last, country, code)
@@ -78,10 +75,13 @@ func (a *API) StoreRecord(w http.ResponseWriter, r *http.Request) {
 
 	// get the current date
 
+	// log.Println(appointment_info)
 	rec := &Record{
 		Message: []byte(appointment_info),
 		Date:    time.Now(),
 	}
+
+	// log.Println("this messagE " + string(rec.Message))
 
 	b, err := json.Marshal(rec)
 	if err != nil {
@@ -90,10 +90,23 @@ func (a *API) StoreRecord(w http.ResponseWriter, r *http.Request) {
 
 	log.Println(string(b))
 	encrypted := Encrypt(hash_key, b)
-	log.Println(string(encrypted))
+
+	enc := EncryptedRecord{
+		ID:       string(encrypted),
+		Contents: encrypted,
+	}
+	err = a.store.Save(&enc)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	// log.Println(string(encrypted))
 
 	decrypted := Decrypt(hash_key, encrypted)
 	log.Println(string(decrypted))
+	var re *Record
+	json.Unmarshal(decrypted, &re)
+	log.Println("decrypted message is " + string(re.Message))
 
 }
 
@@ -153,10 +166,11 @@ func (a *API) NewRecordHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func NewAPI(store *storm.DB) *API {
+func NewAPI(store *storm.DB, uuid string) *API {
 
 	// initialize a new api
 	a := &API{
+		me:    uuid,
 		store: store,
 	}
 

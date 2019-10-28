@@ -12,11 +12,10 @@ func main() {
 
 	fmt.Println("Starting discovery")
 
-	//pd := CreatePeerDriver()
-	//pd.Discovery()
-
+	pd := CreatePeerDriver()
+	go pd.Discovery()
 	db, _ := storm.Open("my.db")
-	api := NewAPI(db)
+	api := NewAPI(db, pd.uuid)
 
 	api.Run()
 

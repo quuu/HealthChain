@@ -23,6 +23,7 @@ type PeerDriver struct {
 	m     *sync.Mutex
 	me    *Peer
 	peers map[string]*Peer
+	api   *API
 }
 
 // Peer is a helper struct to store information about the peer

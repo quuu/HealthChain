@@ -9,3 +9,8 @@ type Record struct {
 	Message []byte
 	Date    time.Time
 }
+
+type EncryptedRecord struct {
+	ID       string
+	Contents []byte
+}
