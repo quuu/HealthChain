@@ -13,7 +13,9 @@ func main() {
 	//pd := CreatePeerDriver()
 	//pd.Discovery()
 
-	api()
+	api := NewAPI()
+
+	api.Run()
 
 	return
 }

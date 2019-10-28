@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/asdine/storm/v3"
 	"github.com/go-chi/chi"
@@ -12,10 +13,12 @@ import (
 
 // API
 type API struct {
-	str string
+	str   string
+	store *storm.DB
+	r     http.Handler
 }
 
-func IndexHandler(w http.ResponseWriter, r *http.Request) {
+func (a *API) IndexHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	b, err := json.MarshalIndent("a", "", " ")
 	if err != nil {
@@ -24,17 +27,7 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(b)
 }
 
-func PeersHandler(w http.ResponseWriter, r *http.Request) {
-
-	w.Header().Set("Content-Type", "application/json")
-	b, err := json.MarshalIndent("a", "", " ")
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		// return err
-	}
-	w.Write(b)
-}
-func AllRecordsHandler(w http.ResponseWriter, r *http.Request) {
+func (a *API) PeersHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	b, err := json.MarshalIndent("a", "", " ")
@@ -44,8 +37,21 @@ func AllRecordsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Write(b)
 }
+func (a *API) AllRecordsHandler(w http.ResponseWriter, r *http.Request) {
 
-func NewRecordHandler(w http.ResponseWriter, r *http.Request) {
+	var records []*Record
+	err := a.store.All(&records)
+
+	w.Header().Set("Content-Type", "application/json")
+	b, err := json.MarshalIndent(records, "", " ")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		// return err
+	}
+	w.Write(b)
+}
+
+func (a *API) NewRecordHandler(w http.ResponseWriter, r *http.Request) {
 
 	r.ParseForm()
 
@@ -53,27 +59,58 @@ func NewRecordHandler(w http.ResponseWriter, r *http.Request) {
 		log.Println(element)
 	}
 }
-func api() {
+
+func NewAPI() *API {
+
+	// initialize a new api
+	a := &API{}
+
+	log.Printf("initializing api \n")
 
 	r := chi.NewRouter()
 
+	// create the database to reference
 	db, _ := storm.Open("my.db")
 
-	defer db.Close()
+	a.store = db
+
+	rec := Record{ID: "someoneelse", Message: []byte("testing"), Date: time.Now()}
+
+	err := db.Save(&rec)
+	if err != nil {
+		log.Printf("errored at %s", err)
+	}
+
+	rec2 := Record{ID: "me", Message: []byte("asdf"), Date: time.Now()}
+	err = db.Save(&rec2)
+	if err != nil {
+		log.Printf("errored at %s", err)
+	}
 
 	r.Use(middleware.DefaultCompress)
 
 	// r.Method("GET", "/static/*", http.FileServer)
 
-	r.Get("/", IndexHandler)
+	r.Get("/", a.IndexHandler)
 
-	r.Get("/all_reocrds", AllRecordsHandler)
+	r.Get("/all_records", a.AllRecordsHandler)
 
-	r.Get("/peers", PeersHandler)
+	r.Get("/peers", a.PeersHandler)
 
-	r.Post("/new_record", NewRecordHandler)
+	r.Post("/new_record", a.NewRecordHandler)
 
-	err := http.ListenAndServe(":3000", r)
+	a.r = r
+
+	return a
+}
+
+func (a *API) Run() {
+	// close the store once listening is done
+	defer a.store.Close()
+
+	// listen for requests
+	log.Printf("listening")
+	err := http.ListenAndServe(":3000", a.r)
 	if err != nil {
 
 		log.WithError(err).Error("unable to listen and serve")
