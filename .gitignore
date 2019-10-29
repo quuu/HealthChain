@@ -4,3 +4,4 @@ planning.txt
 db.json
 go.sum
 healthchain
+node_modules/
