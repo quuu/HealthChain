@@ -46,9 +46,7 @@ export default {
 }
 </script>
 
-<style lang="css">
-    @import '../node_modules/bulma/css/bulma.css';
-</style>
+
 
 <style>
 #app {

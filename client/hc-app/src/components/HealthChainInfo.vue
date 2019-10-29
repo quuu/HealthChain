@@ -1,8 +1,8 @@
 <template>
- <div class="container is-fluid">   
+ <div class="is-centered">   
 
       <div class="column">
-        <div class='card-content is-flex is-horizontal-center'>
+        <div class='container'>
             <img src='../../../g3884.png'/>
         </div>
       </div>  
@@ -14,7 +14,9 @@
 
     <div class="hero-body">    
         <h1 class="title">What is HealthChain?</h1>
-        <h2 class="subtitle">HealthChain is a proof of concept for a decentralized health record system. Our aim is to give health professionals rapid and easy access to their patients health records, regardless of location. This is done by assigning a private key to each person in the database, which when entered will unlock access to the patients medical records.</h2>
+        <h2 class="subtitle">HealthChain is a proof of concept for a decentralized health record system.</h2>
+        <h2 class="subtitle">  Our aim is to give health professionals rapid and easy access to their patients health records, regardless of location. </h2>
+        <h2 class="subtitle">  This is done by assigning a private key to each person in the database, which when entered will unlock access to the patients medical records.</h2>
                           
     </div>
 
@@ -45,20 +47,3 @@ export default {
 }
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-h3 {
-  margin: 40px 0 0;
-}
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-a {
-  color: #42b983;
-}
-</style>
