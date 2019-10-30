@@ -11,6 +11,7 @@ import (
 
 	"strconv"
 
+	"github.com/asdine/storm/v3"
 	"github.com/go-chi/chi"
 	"github.com/grandcat/zeroconf"
 	uuid "github.com/satori/go.uuid"
@@ -24,6 +25,7 @@ type PeerDriver struct {
 	me    *Peer
 	peers map[string]*Peer
 	api   *API
+	store *storm.DB
 }
 
 // Peer is a helper struct to store information about the peer
@@ -36,30 +38,39 @@ type Peer struct {
 // function that handles displaying all the messages
 // TODO
 // integrate with the storage
-func recordHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Records go here"))
+func (pd *PeerDriver) recordHandler(w http.ResponseWriter, r *http.Request) {
+
+	// host all the
+	w.Header().Set("Content-Type", "application/json")
+	var records []*EncryptedRecord
+	err := pd.store.All(&records)
+	b, err := json.MarshalIndent(records, "", " ")
+	if err != nil {
+		panic(err.Error())
+	}
+
+	w.Write(b)
 }
 
-func peerHandler(w http.ResponseWriter, r *http.Request) {
+func (pd *PeerDriver) peerHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("peers go here"))
 }
 
-func CreatePeerDriver() *PeerDriver {
+// Create a PeerDriver object
+func CreatePeerDriver(store *storm.DB) *PeerDriver {
 	pd := &PeerDriver{
 		m:     &sync.Mutex{},
 		peers: map[string]*Peer{},
 	}
-
 	return pd
-
 }
 
 func (pd *PeerDriver) Discovery() {
 
 	// initialize all the endpoints to serve publicly
 	r := chi.NewRouter()
-	r.Get("/records", recordHandler)
-	r.Get("/peers", peerHandler)
+	r.Get("/records", pd.recordHandler)
+	r.Get("/peers", pd.peerHandler)
 
 	listener, err := net.Listen("tcp", ":0")
 	if err != nil {

@@ -3,9 +3,8 @@ package main
 import (
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/md5"
 	"crypto/rand"
-	"encoding/hex"
+	"crypto/sha256"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -14,6 +13,7 @@ import (
 	"github.com/asdine/storm/v3"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+	uuid "github.com/satori/go.uuid"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -25,6 +25,8 @@ type API struct {
 	r     http.Handler
 }
 
+// handler for main page
+// route it to index.html
 func (a *API) IndexHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	b, err := json.MarshalIndent("a", "", " ")
@@ -34,6 +36,7 @@ func (a *API) IndexHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(b)
 }
 
+// handler to find out which peers are currently connected
 func (a *API) PeersHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
@@ -44,9 +47,37 @@ func (a *API) PeersHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Write(b)
 }
+
+func (a *API) DecryptPatientRecords(first string, last string, country string, code string) {
+
+	enc := a.FetchEncrypted()
+
+	log.Println("fetching all records")
+	hash_key := GetHash(first, last, country, code)
+	for _, elem := range enc {
+
+		log.Println("this is a record")
+		log.Println(elem.Contents)
+		log.Println("attempting to decrypt")
+		temp := Decrypt(hash_key, elem.Contents)
+		log.Println(temp)
+	}
+
+}
+func (a *API) FetchEncrypted() []*EncryptedRecord {
+
+	var encrypted []*EncryptedRecord
+	err := a.store.All(&encrypted)
+	if err != nil {
+		panic(err.Error())
+	}
+	return encrypted
+}
+
+// handler to get all encrypted records currently being stored
 func (a *API) AllRecordsHandler(w http.ResponseWriter, r *http.Request) {
 
-	var records []*Record
+	var records []*EncryptedRecord
 	err := a.store.All(&records)
 
 	w.Header().Set("Content-Type", "application/json")
@@ -56,6 +87,42 @@ func (a *API) AllRecordsHandler(w http.ResponseWriter, r *http.Request) {
 		// return err
 	}
 	w.Write(b)
+}
+
+func (a *API) GetRecords(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+
+	first := r.Form.Get("first")
+	last := r.Form.Get("last")
+	country := r.Form.Get("country")
+	code := r.Form.Get("code")
+
+	hash_key := GetHash(first, last, country, code)
+	log.Println("got hash key  ")
+	log.Println(hash_key)
+
+	enc := a.FetchEncrypted()
+	for _, record := range enc {
+
+		log.Println("this is a record")
+		log.Println(record.Contents)
+		log.Println("attempting to decrypt")
+		temp := Decrypt(hash_key, record.Contents)
+		log.Println(string(temp))
+	}
+
+	// var enc []*EncryptedRecord
+
+	// err := a.store.Find("ID", hash_key, &enc)
+	// if err != nil {
+	// 	panic(err.Error())
+	// }
+	// fmt.Println("got decoded")
+	// fmt.Println(enc)
+
+	// w.Write([]byte("found stuff"))
+
+	// a.DecryptPatientRecords(first, last, country, code)
 }
 
 func (a *API) StoreRecord(w http.ResponseWriter, r *http.Request) {
@@ -70,47 +137,57 @@ func (a *API) StoreRecord(w http.ResponseWriter, r *http.Request) {
 	// get the hash of the user
 	hash_key := GetHash(first, last, country, code)
 
+	log.Println("got the hash key " + string(hash_key))
 	//get the messaage
 	appointment_info := r.Form.Get("appointment_info")
 
-	// get the current date
-
-	// log.Println(appointment_info)
+	// create a new record
 	rec := &Record{
-		Message: []byte(appointment_info),
+		Message: appointment_info,
 		Date:    time.Now(),
 	}
 
-	// log.Println("this messagE " + string(rec.Message))
+	log.Println("the mesage is ")
+	log.Println(rec.Message)
+	// log.Println(string(rec.Message))
 
 	b, err := json.Marshal(rec)
 	if err != nil {
 		panic(err.Error())
 	}
 
-	log.Println(string(b))
 	encrypted := Encrypt(hash_key, b)
 
+	// save the encrypted record with the id
+	// being the hash key
+	// TODO
+	// find a better way to store the id for lookup
 	enc := EncryptedRecord{
-		ID:       string(encrypted),
+		ID:       uuid.NewV4().String(),
 		Contents: encrypted,
 	}
+
+	// actually save it into the database
 	err = a.store.Save(&enc)
 	if err != nil {
 		panic(err.Error())
 	}
 
-	// log.Println(string(encrypted))
+	//temporary code to make sure the encryption
+	// can be decrypted
+	// decrypted := Decrypt(hash_key, encrypted)
+	// log.Println(string(decrypted))
 
-	decrypted := Decrypt(hash_key, encrypted)
-	log.Println(string(decrypted))
-	var re *Record
-	json.Unmarshal(decrypted, &re)
-	log.Println("decrypted message is " + string(re.Message))
+	// var re *Record
+	// json.Unmarshal(decrypted, &re)
+	// log.Println("decrypted message is " + string(re.Message))
 
 }
 
-func Encrypt(block cipher.Block, data []byte) []byte {
+// function that will return an encrypted record given
+// a hashed encoding and a stream of bytes to encode
+func Encrypt(encoding []byte, data []byte) []byte {
+	block, _ := aes.NewCipher(encoding)
 	gcm, err := cipher.NewGCM(block)
 	if err != nil {
 		panic(err.Error())
@@ -123,7 +200,12 @@ func Encrypt(block cipher.Block, data []byte) []byte {
 	return cipher_text
 }
 
-func Decrypt(block cipher.Block, data []byte) []byte {
+// function that will return a decrypted record given
+// a hashed encoding and a stream of bytes that has been encoded
+// TODO
+// if the result is not fully decoded, return something meaningful
+func Decrypt(encoding []byte, data []byte) []byte {
+	block, _ := aes.NewCipher(encoding)
 	gcm, err := cipher.NewGCM((block))
 	if err != nil {
 		panic(err.Error())
@@ -137,15 +219,14 @@ func Decrypt(block cipher.Block, data []byte) []byte {
 	return plaintext
 }
 
-func GetHash(first string, last string, country string, code string) cipher.Block {
+// function that will return the md5 hash encoding given 4 string parameters
+func GetHash(first string, last string, country string, code string) []byte {
 
-	hasher := md5.New()
+	hasher := sha256.New()
 	hasher.Write([]byte(first + last + country + code))
-	encoding := hex.EncodeToString(hasher.Sum(nil))
 
-	block, _ := aes.NewCipher([]byte(encoding))
-
-	return block
+	log.Println("made the hash " + string(hasher.Sum(nil)))
+	return hasher.Sum(nil)
 	// gcm, err := cipher.NewGCM(block)
 	// if err != nil {
 	// 	panic(err.Error())
@@ -180,14 +261,14 @@ func NewAPI(store *storm.DB, uuid string) *API {
 
 	// create the database to reference
 
-	rec := Record{ID: "someoneelse", Message: []byte("testing"), Date: time.Now()}
+	rec := Record{ID: "someoneelse", Message: "testing", Date: time.Now()}
 
 	err := store.Save(&rec)
 	if err != nil {
 		log.Printf("errored at %s", err)
 	}
 
-	rec2 := Record{ID: "me", Message: []byte("asdf"), Date: time.Now()}
+	rec2 := Record{ID: "me", Message: "asdf", Date: time.Now()}
 	err = store.Save(&rec2)
 	if err != nil {
 		log.Printf("errored at %s", err)
@@ -204,6 +285,8 @@ func NewAPI(store *storm.DB, uuid string) *API {
 	r.Get("/peers", a.PeersHandler)
 
 	r.Post("/new_record", a.StoreRecord)
+
+	r.Post("/get_records", a.GetRecords)
 
 	a.r = r
 
