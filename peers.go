@@ -243,6 +243,16 @@ func (pd *PeerDriver) handleEntry(entry *zeroconf.ServiceEntry) {
 // currently set to fetch every 1 second when theres no new entries
 func (pd *PeerDriver) fetchRecords() {
 
-	log.Println("currently fetching records ")
+	c := http.Client{
+		Timeout: time.second * 5,
+	}
+
+	pd.m.Lock()
+	for _, peer := range pd.peers {
+
+		// for every peer, try all addresses
+
+		// make get request to  messages
+	}
 
 }
