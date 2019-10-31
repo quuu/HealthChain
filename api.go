@@ -143,6 +143,7 @@ func (a *API) StoreRecord(w http.ResponseWriter, r *http.Request) {
 
 	// create a new record
 	rec := &Record{
+		ID:      uuid.NewV4().String(),
 		Message: appointment_info,
 		Date:    time.Now(),
 	}
@@ -213,8 +214,11 @@ func Decrypt(encoding []byte, data []byte) []byte {
 	nonceSize := gcm.NonceSize()
 	nonce, cipher_text := data[:nonceSize], data[nonceSize:]
 	plaintext, err := gcm.Open(nil, nonce, cipher_text, nil)
+
+	// failed to decrypt, would normally throw an error
 	if err != nil {
-		panic(err.Error())
+		// panic(err.Error())
+		return nil
 	}
 	return plaintext
 }
