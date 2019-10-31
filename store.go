@@ -5,9 +5,9 @@ import (
 )
 
 type Record struct {
-	ID      string
-	Message string
-	Date    time.Time
+	ID      string    `json:"ID"`
+	Message string    `json:"Message"`
+	Date    time.Time `json:"Date"`
 }
 
 type EncryptedRecord struct {

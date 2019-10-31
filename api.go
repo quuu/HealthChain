@@ -48,29 +48,16 @@ func (a *API) PeersHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(b)
 }
 
-func (a *API) DecryptPatientRecords(first string, last string, country string, code string) {
-
-	enc := a.FetchEncrypted()
-
-	log.Println("fetching all records")
-	hash_key := GetHash(first, last, country, code)
-	for _, elem := range enc {
-
-		log.Println("this is a record")
-		log.Println(elem.Contents)
-		log.Println("attempting to decrypt")
-		temp := Decrypt(hash_key, elem.Contents)
-		log.Println(temp)
-	}
-
-}
+// gets all encrypted records
 func (a *API) FetchEncrypted() []*EncryptedRecord {
 
 	var encrypted []*EncryptedRecord
 	err := a.store.All(&encrypted)
+
 	if err != nil {
 		panic(err.Error())
 	}
+
 	return encrypted
 }
 
@@ -101,28 +88,24 @@ func (a *API) GetRecords(w http.ResponseWriter, r *http.Request) {
 	log.Println("got hash key  ")
 	log.Println(hash_key)
 
+	var records []string
 	enc := a.FetchEncrypted()
 	for _, record := range enc {
 
-		log.Println("this is a record")
-		log.Println(record.Contents)
-		log.Println("attempting to decrypt")
+		// if the decryption was successful
 		temp := Decrypt(hash_key, record.Contents)
-		log.Println(string(temp))
+		if temp != nil {
+			records = append(records, string(temp))
+		}
 	}
 
-	// var enc []*EncryptedRecord
+	w.Header().Set("Content-Type", "application/json")
+	b, err := json.MarshalIndent(records, "", "")
+	if err != nil {
+		panic(err.Error())
+	}
+	w.Write(b)
 
-	// err := a.store.Find("ID", hash_key, &enc)
-	// if err != nil {
-	// 	panic(err.Error())
-	// }
-	// fmt.Println("got decoded")
-	// fmt.Println(enc)
-
-	// w.Write([]byte("found stuff"))
-
-	// a.DecryptPatientRecords(first, last, country, code)
 }
 
 func (a *API) StoreRecord(w http.ResponseWriter, r *http.Request) {
@@ -137,34 +120,34 @@ func (a *API) StoreRecord(w http.ResponseWriter, r *http.Request) {
 	// get the hash of the user
 	hash_key := GetHash(first, last, country, code)
 
-	log.Println("got the hash key " + string(hash_key))
 	//get the messaage
 	appointment_info := r.Form.Get("appointment_info")
 
+	unique_id := uuid.NewV4().String()
 	// create a new record
 	rec := &Record{
-		ID:      uuid.NewV4().String(),
+		ID:      unique_id,
 		Message: appointment_info,
 		Date:    time.Now(),
 	}
 
-	log.Println("the mesage is ")
-	log.Println(rec.Message)
-	// log.Println(string(rec.Message))
-
+	// conver the contents to a byte array
 	b, err := json.Marshal(rec)
 	if err != nil {
 		panic(err.Error())
 	}
 
+	// encrypt the record
 	encrypted := Encrypt(hash_key, b)
 
 	// save the encrypted record with the id
 	// being the hash key
 	// TODO
 	// find a better way to store the id for lookup
+
+	// using a unique_id to prevent duplicate saves
 	enc := EncryptedRecord{
-		ID:       uuid.NewV4().String(),
+		ID:       unique_id,
 		Contents: encrypted,
 	}
 
@@ -173,16 +156,7 @@ func (a *API) StoreRecord(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err.Error())
 	}
-
-	//temporary code to make sure the encryption
-	// can be decrypted
-	// decrypted := Decrypt(hash_key, encrypted)
-	// log.Println(string(decrypted))
-
-	// var re *Record
-	// json.Unmarshal(decrypted, &re)
-	// log.Println("decrypted message is " + string(re.Message))
-
+	w.Write([]byte("Saved!"))
 }
 
 // function that will return an encrypted record given
@@ -226,29 +200,12 @@ func Decrypt(encoding []byte, data []byte) []byte {
 // function that will return the md5 hash encoding given 4 string parameters
 func GetHash(first string, last string, country string, code string) []byte {
 
+	// utilize sha256 to fix the hash to be 32 bytes long
 	hasher := sha256.New()
 	hasher.Write([]byte(first + last + country + code))
 
 	log.Println("made the hash " + string(hasher.Sum(nil)))
 	return hasher.Sum(nil)
-	// gcm, err := cipher.NewGCM(block)
-	// if err != nil {
-	// 	panic(err.Error())
-	// }
-
-	// nonce := make([]byte, gcm.NonceSize())
-	// if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
-	// 	panic(err.Error())
-	// }
-	// cipherText := gcm.Seal(nonce, nonce, )
-}
-func (a *API) NewRecordHandler(w http.ResponseWriter, r *http.Request) {
-
-	r.ParseForm()
-
-	for _, element := range r.Form {
-		log.Println(element)
-	}
 }
 
 func NewAPI(store *storm.DB, uuid string) *API {
@@ -264,7 +221,6 @@ func NewAPI(store *storm.DB, uuid string) *API {
 	r := chi.NewRouter()
 
 	// create the database to reference
-
 	rec := Record{ID: "someoneelse", Message: "testing", Date: time.Now()}
 
 	err := store.Save(&rec)
