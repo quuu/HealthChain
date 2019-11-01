@@ -40,7 +40,7 @@
                           </div>
                           <div class="field column">
                               <p class="control has-icons-left">
-                                  <input class="input" type="password" v-model="ssn" placeholder="SSN">
+                                  <input class="input" type="password" v-model="code" placeholder="Code">
                                   <span class="icon is-small is-left">
                                     <i class="fas fa-lock"></i>
                                   </span>
@@ -52,7 +52,7 @@
                             </button>
                           </div>
                           <div class="field column">
-                              <button class="button is-danger" @click=" () => {
+                              <button class="button is-danger" @click.prevent=" () => {
                                 getHealthData()
                                 }" >
                                   Request Records
@@ -68,7 +68,7 @@
           <p v-if="firstname">First Name: {{firstname}}</p>
       <p v-if="lastname">Last Name: {{lastname}}</p>
       <p v-if="country">Country: {{country}} </p>
-      <p v-if="ssn">SSN: {{ssn}}</p>
+      <p v-if="code">Code: {{code}}</p>
       </div>
   
 </template>
@@ -77,8 +77,16 @@
 import axios from 'axios';
 
 export default {
-  props:["firstname", "lastname", "country", "ssn"],
 
+  data() {
+    return {
+      firstname: null,
+      lastname: null,
+      country: null,
+      code: null
+    };
+  },
+  
   methods: {
 
     async getHealthData(){
@@ -86,11 +94,14 @@ export default {
       await axios({
         method: 'post',
         url: 'localhost:3000/new_record',
+
+           headers: { 'Access-Control-Allow-Origin': '*',
+           'Content-Type': 'application/json' },
         data: {
-          firstname: firstname,
-          lastname: lastname,
-          country: country,
-          ssn: ssn
+          firstname: this.firstname,
+          lastname: this.lastname,
+          country: this.country,
+          code: this.code
         }
       }).then(function(response){
 
