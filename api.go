@@ -119,12 +119,12 @@ func (a *API) GetRecords(w http.ResponseWriter, r *http.Request) {
 
 func (a *API) StoreRecord(w http.ResponseWriter, r *http.Request) {
 
-	r.ParseForm()
+	r.ParseMultipartForm(0)
 
-	first := r.Form.Get("first")
-	last := r.Form.Get("last")
-	country := r.Form.Get("country")
-	code := r.Form.Get("code")
+	first := r.FormValue("first")
+	last := r.FormValue("last")
+	country := r.FormValue("country")
+	code := r.FormValue("code")
 
 	// get the hash of the user
 	hash_key := GetHash(first, last, country, code)
