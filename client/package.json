@@ -18,7 +18,10 @@
     "cross-env": "^5.2.0",
     "express": "^4.16.4",
     "nuxt": "^2.0.0",
-    "nuxt-buefy": "^0.3.2"
+    "nuxt-buefy": "^0.3.2",
+    "nuxt-fontawesome": "^0.4.0",
+    "nuxt-material-design-icons": "^1.0.4",
+    "vue-fontawesome": "0.0.2"
   },
   "devDependencies": {
     "nodemon": "^1.18.9"

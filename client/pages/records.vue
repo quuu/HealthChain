@@ -3,7 +3,7 @@
           <div class="container ">
             <div class="columns is-5-tablet is-4-desktop is-3-widescreen">
                 <div class="column">
-                    <form class="box has-background-light" >
+                    <form class="box has-background-light" v-if="showForm" >
                         <div class="field has-text-centered">
                             <img src="@/assets/logo.png" width="400">
                         </div>
@@ -59,7 +59,8 @@
                               </button>
                           </div>
                         </div>
-                  
+                      <b-loading :is-full-page="false" :active.sync="isLoading" :can-cancel="true">
+                      </b-loading>
                     </form>
                 </div>
             </div>
@@ -80,36 +81,45 @@ export default {
 
   data() {
     return {
+      showForm: true,
       firstname: null,
       lastname: null,
       country: null,
-      code: null
+      code: null,
+      showForm: true,
+      isLoading: false
     };
   },
   
   methods: {
 
     async getHealthData(){
-      alert("HELLO")
+      this.openLoading();
       await axios({
         method: 'post',
-        url: '/api/new_record',
+        url: '/api/get_records',
 
            headers: { 'Access-Control-Allow-Origin': '*',
+           'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,OPTIONS',
            'Content-Type': 'application/json' },
         data: {
-          firstname: this.firstname,
-          lastname: this.lastname,
+          first: this.firstname,
+          last: this.lastname,
           country: this.country,
           code: this.code
         }
       }).then(function(response){
-
+        //this.showForm =false;        
         console.log(response);
       });
-    }
+    },
+    openLoading() {
+        this.isLoading = true
+        setTimeout(() => {
+          this.isLoading = false
+        }, 10 * 1000)
+      }
   }
-
 
   
 }

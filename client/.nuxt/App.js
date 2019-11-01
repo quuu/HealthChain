@@ -8,6 +8,8 @@ import {
 
 import NuxtLoading from './components/nuxt-loading.vue'
 
+import '../node_modules/@fortawesome/fontawesome-svg-core/styles.css'
+
 import '../node_modules/buefy/dist/buefy.css'
 
 import _6f6c098b from '../layouts/default.vue'

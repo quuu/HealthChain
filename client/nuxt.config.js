@@ -41,14 +41,18 @@ module.exports = {
     // Doc: https://buefy.github.io/#/documentation
     'nuxt-buefy',
     '@nuxtjs/axios',
-    '@nuxtjs/proxy'
+    '@nuxtjs/proxy',
+    'nuxt-fontawesome'
   ],
 
   axios: {
-    proxy: false
+    proxy: true
   },
   proxy: {
     '/api/': { target: 'http://localhost:3000', pathRewrite: { '^/api/': '' }}
+  },
+  server: {
+    port: 8000 // default: 3000
   },
   /*
   ** Build configuration
