@@ -52,7 +52,9 @@
                             </button>
                           </div>
                           <div class="field column">
-                              <button class="button is-danger" @click="getHealthData()" >
+                              <button class="button is-danger" @click=" () => {
+                                getHealthData()
+                                }" >
                                   Request Records
                               </button>
                           </div>
@@ -77,22 +79,26 @@ import axios from 'axios';
 export default {
   props:["firstname", "lastname", "country", "ssn"],
 
-  getHealthData: function(){
-    alert("HELLO")
-    axios({
-      method: 'post',
-      url: '/user/12345',
-      data: {
-        firstname: firstname,
-        lastname: lastname,
-        country: country,
-        ssn: ssn
-      }
-    }).then(function(response){
+  methods: {
 
-      console.log(response);
-    });
+    async getHealthData(){
+      alert("HELLO")
+      await axios({
+        method: 'post',
+        url: 'localhost:3000/new_record',
+        data: {
+          firstname: firstname,
+          lastname: lastname,
+          country: country,
+          ssn: ssn
+        }
+      }).then(function(response){
+
+        console.log(response);
+      });
+    }
   }
+
 
   
 }
