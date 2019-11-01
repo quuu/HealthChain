@@ -68,10 +68,14 @@
   
     <h1 v-if="firstname" class="title is-1 text-justify-center">Health Info for  {{firstname + " " + lastname}}</h1>
 
+    <div v-for="data in healthData" :key="data._id">
       <appointment
-        date="Friday, November 1st, 2019"
-        Message="You have aids, we're gonna have to kill you"
+        :date="data.Date"
+        :Message="data.Message"
       />
+    </div>
+
+      
   
       </div>
   
@@ -95,7 +99,8 @@ export default {
       country: null,
       code: null,
       showForm: true,
-      isLoading: false
+      isLoading: false,
+      healthData: []
     };
   },
   
@@ -111,6 +116,7 @@ export default {
     },
     async getHealthData(){
       this.openLoading();
+      let self =this;
       await axios({
         method: 'post',
         url: '/api/get_records',
@@ -127,7 +133,8 @@ export default {
         // }
       }).then(function(response){
         //this.showForm =false;        
-        console.log(response);
+        console.log(response.data);
+        self.healthData = JSON.parse(JSON.stringify(response.data));
       });
     },
     openLoading() {
