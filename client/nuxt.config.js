@@ -40,7 +40,16 @@ module.exports = {
   modules: [
     // Doc: https://buefy.github.io/#/documentation
     'nuxt-buefy',
+    '@nuxtjs/axios',
+    '@nuxtjs/proxy'
   ],
+
+  axios: {
+    proxy: false
+  },
+  proxy: {
+    '/api/': { target: 'http://localhost:3000', pathRewrite: { '^/api/': '' }}
+  },
   /*
   ** Build configuration
   */

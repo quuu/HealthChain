@@ -93,7 +93,7 @@ export default {
       alert("HELLO")
       await axios({
         method: 'post',
-        url: 'localhost:3000/new_record',
+        url: '/api/new_record',
 
            headers: { 'Access-Control-Allow-Origin': '*',
            'Content-Type': 'application/json' },
