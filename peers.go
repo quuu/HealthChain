@@ -174,9 +174,7 @@ func (pd *PeerDriver) Discovery() {
 
 			peers := []*Peer{}
 			dec := json.NewDecoder(resp.Body)
-			// log.Println(dec)
 			err = dec.Decode(&peers)
-			// log.Println(peers)
 			if err != nil {
 				log.WithError(err).Error("unable to decode peers")
 				continue
