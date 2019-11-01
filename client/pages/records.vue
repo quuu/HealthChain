@@ -47,7 +47,7 @@
                                 </p>
                           </div>
                           <div class="field column">
-                            <button class="button is-pulled-right">
+                            <button class="button is-pulled-right" @click="getHealthData()">
                               Clear Form
                             </button>
                           </div>
@@ -72,7 +72,26 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
-  props:["firstname", "lastname", "country", "ssn"]
+  props:["firstname", "lastname", "country", "ssn"],
+
+  getHealthData(){
+    axios({
+      method: 'post',
+      url: '/user/12345',
+      data: {
+        firstname: firstname,
+        lastname: lastname,
+        country: country,
+        ssn: ssn
+      }
+    }).then(function(response){
+      console.log(response);
+    });
+  }
+
+  
 }
 </script>
