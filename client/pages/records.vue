@@ -65,11 +65,14 @@
                 </div>
             </div>
           </div>
+  
+    <h1 v-if="firstname" class="title is-1 text-justify-center">Health Info for  {{firstname + " " + lastname}}</h1>
 
-          <p v-if="firstname">First Name: {{firstname}}</p>
-      <p v-if="lastname">Last Name: {{lastname}}</p>
-      <p v-if="country">Country: {{country}} </p>
-      <p v-if="code">Code: {{code}}</p>
+      <appointment
+        date="Friday, November 1st, 2019"
+        Message="You have aids, we're gonna have to kill you"
+      />
+  
       </div>
   
 </template>
@@ -77,7 +80,12 @@
 <script>
 import axios from 'axios';
 
+import appointment from '@/components/appointment'
+
 export default {
+  components:{
+    appointment
+  },
 
   data() {
     return {
