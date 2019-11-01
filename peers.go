@@ -6,11 +6,13 @@ import (
 	"encoding/json"
 	"net"
 	"net/http"
+	"net/url"
 	"sync"
 	"time"
 
 	"strconv"
 
+	"github.com/asdine/storm/v3"
 	"github.com/go-chi/chi"
 	"github.com/grandcat/zeroconf"
 	uuid "github.com/satori/go.uuid"
@@ -23,6 +25,8 @@ type PeerDriver struct {
 	m     *sync.Mutex
 	me    *Peer
 	peers map[string]*Peer
+	api   *API
+	store *storm.DB
 }
 
 // Peer is a helper struct to store information about the peer
@@ -35,30 +39,54 @@ type Peer struct {
 // function that handles displaying all the messages
 // TODO
 // integrate with the storage
-func recordHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Records go here"))
+func (pd *PeerDriver) recordHandler(w http.ResponseWriter, r *http.Request) {
+
+	// host all the
+	w.Header().Set("Content-Type", "application/json")
+	var records []*EncryptedRecord
+	err := pd.store.All(&records)
+	b, err := json.MarshalIndent(records, "", " ")
+	if err != nil {
+		panic(err.Error())
+	}
+
+	w.Write(b)
 }
 
-func peerHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("peers go here"))
+func (pd *PeerDriver) peerHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	// create a new encoder
+	enc := json.NewEncoder(w)
+
+	// make sure no one else is editing the peers while this happens
+	pd.m.Lock()
+	defer pd.m.Unlock()
+
+	// encode the peers to the response writer
+	if err := enc.Encode(pd.peers); err != nil {
+		http.Error(w, "unable to encode peers", http.StatusInternalServerError)
+		log.WithError(err).Error("unable to encode peers")
+		return
+	}
+
 }
 
-func CreatePeerDriver() *PeerDriver {
+// Create a PeerDriver object
+func CreatePeerDriver(store *storm.DB) *PeerDriver {
 	pd := &PeerDriver{
 		m:     &sync.Mutex{},
 		peers: map[string]*Peer{},
 	}
-
 	return pd
-
 }
 
 func (pd *PeerDriver) Discovery() {
 
 	// initialize all the endpoints to serve publicly
 	r := chi.NewRouter()
-	r.Get("/records", recordHandler)
-	r.Get("/peers", peerHandler)
+	r.Get("/records", pd.recordHandler)
+	r.Get("/peers", pd.peerHandler)
 
 	listener, err := net.Listen("tcp", ":0")
 	if err != nil {
@@ -146,9 +174,7 @@ func (pd *PeerDriver) Discovery() {
 
 			peers := []*Peer{}
 			dec := json.NewDecoder(resp.Body)
-			// log.Println(dec)
 			err = dec.Decode(&peers)
-			// log.Println(peers)
 			if err != nil {
 				log.WithError(err).Error("unable to decode peers")
 				continue
@@ -176,6 +202,25 @@ func (pd *PeerDriver) Discovery() {
 
 func (pd *PeerDriver) handleGlobalEntry(entry *Peer) {
 
+	if entry.ID == pd.uuid {
+		return
+	}
+	p := &Peer{
+		ID:        entry.ID,
+		Port:      entry.Port,
+		Addresses: entry.Addresses,
+	}
+
+	pd.m.Lock()
+	defer pd.m.Unlock()
+	if peer, ok := pd.peers[p.ID]; ok {
+		log.Printf("peer %s already known", p.ID)
+		peer.Addresses = p.Addresses
+		return
+	}
+
+	log.Printf("new peer: %+v", p)
+	pd.peers[p.ID] = p
 }
 
 // function responsible for receiving a new peer
@@ -231,6 +276,66 @@ func (pd *PeerDriver) handleEntry(entry *zeroconf.ServiceEntry) {
 // currently set to fetch every 1 second when theres no new entries
 func (pd *PeerDriver) fetchRecords() {
 
-	log.Println("currently fetching records ")
+	c := http.Client{
+		Timeout: time.Second * 5,
+	}
+
+	pd.m.Lock()
+	defer pd.m.Unlock()
+
+	// for all known peers
+	for index, peer := range pd.peers {
+
+		retrieved := false
+
+		// for every address the peer has
+		for _, addr := range peer.Addresses {
+
+			endpoint := url.URL{
+				Scheme: "http",
+				Path:   "/messages",
+			}
+
+			// check what kind of address is being used
+			if addr.To4() != nil {
+				endpoint.Host = addr.String() + ":" + strconv.Itoa(peer.Port)
+			} else if addr.To16() != nil {
+				endpoint.Host = "[" + addr.String() + "]:" + strconv.Itoa(peer.Port)
+			} else {
+				log.Errorf("peer %s addr type is unknown", index)
+				continue
+			}
+
+			// create the request
+			req, err := http.NewRequest(http.MethodGet, endpoint.String(), nil)
+			if err != nil {
+				continue
+			}
+
+			// actually do the request
+			resp, err := c.Do(req)
+			if err != nil {
+				continue
+			}
+
+			// got something
+			retrieved = true
+
+			// parse the data
+			dec := json.NewDecoder(resp.Body)
+
+			log.Println(dec)
+
+			//TODO
+			// save the messages
+
+		}
+		if !retrieved {
+			delete(pd.peers, index)
+			log.Printf("peer was dead %s", index)
+		}
+
+		// make get request to  messages
+	}
 
 }
