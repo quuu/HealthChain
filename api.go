@@ -77,12 +77,21 @@ func (a *API) AllRecordsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *API) GetRecords(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
+	r.ParseMultipartForm(0)
 
-	first := r.Form.Get("first")
-	last := r.Form.Get("last")
-	country := r.Form.Get("country")
-	code := r.Form.Get("code")
+	first := r.FormValue("first")
+	last := r.FormValue("last")
+	country := r.FormValue("country")
+	code := r.FormValue("code")
+
+	log.Println("first is " + first)
+	log.Println("last is " + last)
+	log.Println("country is " + country)
+	log.Println("code is " + code)
+
+	// for key, value := range r.Form {
+	// 	log.Printf("%s => %s\n", key, value)
+	// }
 
 	hash_key := GetHash(first, last, country, code)
 	log.Println("got hash key  ")
