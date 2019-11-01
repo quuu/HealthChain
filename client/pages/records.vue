@@ -100,22 +100,31 @@ export default {
   },
   
   methods: {
+    loadData(){
+      let form = new FormData()
+      form.append("first", this.firstname)
+      form.append("last", this.lastname)
+      form.append("country", this.country)
+      form.append("code", this.code)
 
+      return form
+    },
     async getHealthData(){
       this.openLoading();
       await axios({
         method: 'post',
         url: '/api/get_records',
 
-           headers: { 'Access-Control-Allow-Origin': '*',
-           'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,OPTIONS',
-           'Content-Type': 'application/json' },
-        data: {
-          first: this.firstname,
-          last: this.lastname,
-          country: this.country,
-          code: this.code
-        }
+        headers: { 'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,OPTIONS',
+        'Content-Type': 'multipart/form-data'},
+        data: this.loadData()
+        // {
+        //   first: this.firstname,
+        //   last: this.lastname,
+        //   country: this.country,
+        //   code: this.code
+        // }
       }).then(function(response){
         //this.showForm =false;        
         console.log(response);
