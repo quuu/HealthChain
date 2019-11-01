@@ -6,3 +6,4 @@ go.sum
 healthchain
 node_modules/
 .nuxt/
+*.db

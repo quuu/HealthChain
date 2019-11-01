@@ -3,6 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
+
+	"github.com/asdine/storm/v3"
 )
 
 func main() {
@@ -10,10 +12,16 @@ func main() {
 
 	fmt.Println("Starting discovery")
 
-	pd := CreatePeerDriver()
-	pd.Discovery()
+	// open the database
+	db, _ := storm.Open("my.db")
 
-	api()
+	// use the same database object for the peer driver
+	pd := CreatePeerDriver(db)
+	go pd.Discovery()
+
+	// as well as the api
+	api := NewAPI(db, pd.uuid)
+	api.Run()
 
 	return
 }
