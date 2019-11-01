@@ -47,12 +47,12 @@
                                 </p>
                           </div>
                           <div class="field column">
-                            <button class="button is-pulled-right" @click="getHealthData()">
+                            <button class="button is-pulled-right" >
                               Clear Form
                             </button>
                           </div>
                           <div class="field column">
-                              <button class="button is-danger" >
+                              <button class="button is-danger" @click="getHealthData()" >
                                   Request Records
                               </button>
                           </div>
@@ -77,7 +77,8 @@ import axios from 'axios';
 export default {
   props:["firstname", "lastname", "country", "ssn"],
 
-  getHealthData(){
+  getHealthData: function(){
+    alert("HELLO")
     axios({
       method: 'post',
       url: '/user/12345',
@@ -88,6 +89,7 @@ export default {
         ssn: ssn
       }
     }).then(function(response){
+
       console.log(response);
     });
   }
