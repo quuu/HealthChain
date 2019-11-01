@@ -9,7 +9,7 @@
                 role="button"
                 aria-controls="contentIdForA11y3">
                 <p class="card-header-title">
-                    Appointment: {{date}}
+                  {{formatDate(date)}}
                 </p>
                 <a class="card-header-icon">
                     <b-icon
@@ -28,7 +28,16 @@
 
 
 <script>
+import moment from 'moment';
 export default {
-  props:['date', 'message']
+  
+
+  props:['date', 'message'],
+  methods:{
+    formatDate(date){
+      var myDate = new Date(date);
+      return moment(myDate).format('MMMM Do YYYY, h:mm:ss a');
+    }
+  }
 }
 </script>

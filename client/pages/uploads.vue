@@ -1,13 +1,14 @@
 <template>
+
   <div class="hero-body">
           <div class="container ">
             <div class="columns is-5-tablet is-4-desktop is-3-widescreen">
                 <div class="column">
-                    <form class="box has-background-light" v-if="showForm" >
+                    <form class="box has-background-light" >
                         <div class="field has-text-centered">
                             <img src="@/assets/logo.png" width="400">
                         </div>
-                        <p class="title is-3 has-text-centered">Health Records Request</p>
+                        <p class="title is-3 has-text-centered">Health Record Submission</p>
                         <div class="columns"> 
                           <div class="field column">
                             <label class="label">First Name</label>
@@ -24,6 +25,7 @@
                         </div>
                         <div class = "columns">
                           <div class="field column">
+                            <label class="label">Country</label>
                             <p class="control has-icons-left">
                               <span class="select">
                                 <select v-model="country">
@@ -37,8 +39,9 @@
                                 <i class="fas fa-globe"></i>
                               </span>
                             </p>
-                          </div>
-                          <div class="field column">
+                             </div>
+                            <div class="field column">
+                              <label class="label">Unique Code</label>
                               <p class="control has-icons-left">
                                   <input class="input" type="password" v-model="code" placeholder="Code">
                                   <span class="icon is-small is-left">
@@ -46,17 +49,26 @@
                                   </span>
                                 </p>
                           </div>
-                          <div class="field column">
-                            <button class="button is-pulled-right" >
-                              Clear Form
-                            </button>
-                          </div>
+
+                         
+                          
+                          <div class="field column"></div>
+                          
+                          
                           <div class="field column">
                               <button class="button is-danger" @click.prevent=" () => {
-                                getHealthData()
+                                postHealthData()
                                 }" >
-                                  Request Records
+                                  Upload Records 
                               </button>
+                          </div>
+                        </div>
+                        <div class="columns">
+                          <div class="field column">
+                            Appointment Information:
+                            <div class="control">
+                                <textarea class="textarea is-danger" placeholder="e.g. Routine Checkup" v-model="message"></textarea>
+                              </div>
                           </div>
                         </div>
                       <b-loading :is-full-page="false" :active.sync="isLoading" :can-cancel="true">
@@ -65,67 +77,50 @@
                 </div>
             </div>
           </div>
-  
-    
-    <section class="container" v-if="!showForm">
-      <h2 class="title is-2">Health Info for  {{firstname + " " + lastname}}: </h2>
 
-      <appointment 
-        v-for="data in healthData" 
-        :key="data.ID"
-        :date="data.Date"
-        :message="data.Message"
-      />
-    </section>
-
-      
-  
-      </div>
-  
+  </div>
 </template>
 
 <script>
-import axios from 'axios';
-  
-import appointment from '@/components/appointment'
-function custom_sort(a, b) {
-    return new Date(b.Date).getTime() - new Date(a.Date).getTime();
-}
 
+import axios from 'axios';
 export default {
-  components:{
-    appointment
-  },
 
   data() {
     return {
-      showForm: true,
       firstname: null,
       lastname: null,
       country: null,
       code: null,
-      showForm: true,
-      isLoading: false,
-      healthData: []
+      message: null,
+      isLoading: false
+    
     };
   },
-  
-  methods: {
+  methods:{
+    openLoading() {
+        this.isLoading = true
+        setTimeout(() => {
+          this.isLoading = false
+        }, 10 * 1000)
+    },
     loadData(){
       let form = new FormData()
       form.append("first", this.firstname)
       form.append("last", this.lastname)
       form.append("country", this.country)
       form.append("code", this.code)
+      form.append("appointment_info", this.message)
 
       return form
     },
-    async getHealthData(){
+
+    async postHealthData(){
       this.openLoading();
       let self =this;
       await axios({
         method: 'post',
-        url: '/api/get_records',
+        url: '/api/new_record',
 
         headers: { 'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,OPTIONS',
@@ -139,23 +134,12 @@ export default {
         // }
       }).then(function(response){
         //this.showForm =false;        
-        console.log(response.data);
-        self.healthData = JSON.parse(JSON.stringify(response.data));
-        self.healthData = self.healthData.map(JSON.parse)
-        self.healthData.sort(custom_sort)
-        console.log(self.healthData)
-        self.showForm = false;
+        console.log(response);
+        
       
       });
-    },
-    openLoading() {
-        this.isLoading = true
-        setTimeout(() => {
-          this.isLoading = false
-        }, 10 * 1000)
-      }
+    }
   }
-
   
 }
 </script>

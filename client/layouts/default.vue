@@ -17,6 +17,9 @@
             <b-navbar-item>
                 <nuxt-link to="/records"><b-button type="is-danger" outlined>Get Records</b-button></nuxt-link>
             </b-navbar-item>
+            <b-navbar-item>
+                <nuxt-link to="/uploads"><b-button type="is-danger" outlined>Add Records</b-button></nuxt-link>
+            </b-navbar-item>
         </template>
         
 
