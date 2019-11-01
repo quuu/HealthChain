@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"net"
 	"net/http"
+	"net/url"
 	"sync"
 	"time"
 
@@ -53,7 +54,7 @@ func (pd *PeerDriver) recordHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (pd *PeerDriver) peerHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("peers go here"))
+
 }
 
 // Create a PeerDriver object
@@ -188,6 +189,25 @@ func (pd *PeerDriver) Discovery() {
 
 func (pd *PeerDriver) handleGlobalEntry(entry *Peer) {
 
+	if entry.ID == pd.uuid {
+		return
+	}
+	p := &Peer{
+		ID:        entry.ID,
+		Port:      entry.Port,
+		Addresses: entry.Addresses,
+	}
+
+	pd.m.Lock()
+	defer pd.m.Unlock()
+	if peer, ok := pd.peers[p.ID]; ok {
+		log.Printf("peer %s already known", p.ID)
+		peer.Addresses = p.Addresses
+		return
+	}
+
+	log.Printf("new peer: %+v", p)
+	pd.peers[p.ID] = p
 }
 
 // function responsible for receiving a new peer
@@ -244,11 +264,62 @@ func (pd *PeerDriver) handleEntry(entry *zeroconf.ServiceEntry) {
 func (pd *PeerDriver) fetchRecords() {
 
 	c := http.Client{
-		Timeout: time.second * 5,
+		Timeout: time.Second * 5,
 	}
 
 	pd.m.Lock()
-	for _, peer := range pd.peers {
+	defer pd.m.Unlock()
+
+	// for all known peers
+	for index, peer := range pd.peers {
+
+		retrieved := false
+
+		// for every address the peer has
+		for _, addr := range peer.Addresses {
+
+			endpoint := url.URL{
+				Scheme: "http",
+				Path:   "/messages",
+			}
+
+			// check what kind of address is being used
+			if addr.To4() != nil {
+				endpoint.Host = addr.String() + ":" + strconv.Itoa(peer.Port)
+			} else if addr.To16() != nil {
+				endpoint.Host = "[" + addr.String() + "]:" + strconv.Itoa(peer.Port)
+			} else {
+				log.Errorf("peer %s addr type is unknown", index)
+				continue
+			}
+
+			// create the request
+			req, err := http.NewRequest(http.MethodGet, endpoint.String(), nil)
+			if err != nil {
+				continue
+			}
+
+			// actually do the request
+			resp, err := c.Do(req)
+			if err != nil {
+				continue
+			}
+
+			// got something
+			retrieved = true
+
+			// parse the data
+			dec := json.NewDecoder(resp.Body)
+
+			log.Println(dec)
+
+			//TODO
+
+		}
+		if !retrieved {
+			delete(pd.peers, index)
+			log.Printf("peer was dead %s", index)
+		}
 
 		// for every peer, try all addresses
 
