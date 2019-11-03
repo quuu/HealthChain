@@ -352,7 +352,7 @@ func (pd *PeerDriver) fetchRecords() {
 func (pd *PeerDriver) handleRecords(encrypted_records []*EncryptedRecord) {
 	for _, rec := range encrypted_records {
 
-		err := pd.store.Save(&rec)
+		err := pd.store.Save(rec)
 		if err != nil {
 
 			panic(err.Error())
