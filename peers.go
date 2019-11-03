@@ -77,6 +77,7 @@ func CreatePeerDriver(store *storm.DB) *PeerDriver {
 	pd := &PeerDriver{
 		m:     &sync.Mutex{},
 		peers: map[string]*Peer{},
+		store: store,
 	}
 	return pd
 }
@@ -293,7 +294,7 @@ func (pd *PeerDriver) fetchRecords() {
 
 			endpoint := url.URL{
 				Scheme: "http",
-				Path:   "/messages",
+				Path:   "/records",
 			}
 
 			// check what kind of address is being used
@@ -322,8 +323,18 @@ func (pd *PeerDriver) fetchRecords() {
 			retrieved = true
 
 			// parse the data
+			log.Println(resp.Body)
 			dec := json.NewDecoder(resp.Body)
 
+			var encrypted_records []*EncryptedRecord
+			err = dec.Decode(&encrypted_records)
+			if err != nil {
+				panic(err.Error())
+			}
+
+			pd.handleRecords(encrypted_records)
+
+			log.Println("got records")
 			log.Println(dec)
 
 			//TODO
@@ -335,7 +346,19 @@ func (pd *PeerDriver) fetchRecords() {
 			log.Printf("peer was dead %s", index)
 		}
 
-		// make get request to  messages
+	}
+}
+
+func (pd *PeerDriver) handleRecords(encrypted_records []*EncryptedRecord) {
+	for _, rec := range encrypted_records {
+
+		err := pd.store.Save(rec)
+		if err != nil {
+
+			panic(err.Error())
+
+		}
+
 	}
 
 }
