@@ -332,7 +332,7 @@ func (pd *PeerDriver) fetchRecords() {
 				panic(err.Error())
 			}
 
-			// pd.handleRecords(encrypted_records)
+			pd.handleRecords(encrypted_records)
 
 			log.Println("got records")
 			log.Println(dec)
