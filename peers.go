@@ -144,9 +144,7 @@ func (pd *PeerDriver) Discovery() {
 		return
 	}
 
-	// HANDLE GLOBAL ENTRIES WITH CLOUD HERE
-	// TODO
-
+	// handle global entries from the web
 	globalEntries := make(chan *Peer)
 	go func() {
 		c := http.Client{
@@ -203,9 +201,12 @@ func (pd *PeerDriver) Discovery() {
 
 func (pd *PeerDriver) handleGlobalEntry(entry *Peer) {
 
+	// ignore if self
 	if entry.ID == pd.uuid {
 		return
 	}
+
+	// create a new peer
 	p := &Peer{
 		ID:        entry.ID,
 		Port:      entry.Port,
@@ -228,7 +229,7 @@ func (pd *PeerDriver) handleGlobalEntry(entry *Peer) {
 // adding it to the list of peers
 func (pd *PeerDriver) handleEntry(entry *zeroconf.ServiceEntry) {
 
-	// if foudn self, add addresses if not already in the list
+	// if found self, add addresses if not already in the list
 	if entry.Instance == pd.uuid {
 		pd.m.Lock()
 		pd.me = &Peer{
@@ -323,24 +324,22 @@ func (pd *PeerDriver) fetchRecords() {
 			retrieved = true
 
 			// parse the data
-			log.Println(resp.Body)
 			dec := json.NewDecoder(resp.Body)
 
+			// turn the response into encrypted record objects
 			var encrypted_records []*EncryptedRecord
 			err = dec.Decode(&encrypted_records)
 			if err != nil {
 				panic(err.Error())
 			}
 
+			// call function used to store the records that are unique
 			pd.handleRecords(encrypted_records)
 
 			log.Println("got records")
-			log.Println(dec)
-
-			//TODO
-			// save the messages
 
 		}
+		// if nothing found, connection is dead
 		if !retrieved {
 			delete(pd.peers, index)
 			log.Printf("peer was dead %s", index)
@@ -349,16 +348,15 @@ func (pd *PeerDriver) fetchRecords() {
 	}
 }
 
+// function that will loop through an array of records
+// 	and save each into storm
 func (pd *PeerDriver) handleRecords(encrypted_records []*EncryptedRecord) {
+
 	for _, rec := range encrypted_records {
 
 		err := pd.store.Save(rec)
 		if err != nil {
-
 			panic(err.Error())
-
 		}
-
 	}
-
 }
