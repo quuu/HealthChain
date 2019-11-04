@@ -86,7 +86,7 @@
 
 <script>
 import axios from 'axios';
-  
+import { NotificationProgrammatic as Notification } from 'buefy'
 import appointment from '@/components/appointment'
 function custom_sort(a, b) {
     return new Date(b.Date).getTime() - new Date(a.Date).getTime();
@@ -140,19 +140,29 @@ export default {
       }).then(function(response){
         //this.showForm =false;        
         console.log(response.data);
-        self.healthData = JSON.parse(JSON.stringify(response.data));
-        self.healthData = self.healthData.map(JSON.parse)
-        self.healthData.sort(custom_sort)
-        console.log(self.healthData)
-        self.showForm = false;
-      
+        if(self.data == null){
+          Notification.open({
+                    duration: 5000,
+                    message: `Error: No records available for this person`,
+                    position: 'is-bottom-right',
+                    type: 'is-danger',
+                    hasIcon: true
+                })
+           self.isLoading = false;     
+        }else{
+          self.healthData = JSON.parse(JSON.stringify(response.data));
+          self.healthData = self.healthData.map(JSON.parse);
+          self.healthData.sort(custom_sort);
+          self.isLoading = false;
+        
+          console.log(self.healthData);
+          self.showForm = false;
+        }
       });
     },
     openLoading() {
         this.isLoading = true
-        setTimeout(() => {
-          this.isLoading = false
-        }, 10 * 1000)
+        
       }
   }
 

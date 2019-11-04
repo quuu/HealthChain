@@ -84,6 +84,7 @@
 <script>
 
 import axios from 'axios';
+import { NotificationProgrammatic as Notification } from 'buefy'
 export default {
 
   data() {
@@ -100,9 +101,6 @@ export default {
   methods:{
     openLoading() {
         this.isLoading = true
-        setTimeout(() => {
-          this.isLoading = false
-        }, 10 * 1000)
     },
     loadData(){
       let form = new FormData()
@@ -135,7 +133,22 @@ export default {
       }).then(function(response){
         //this.showForm =false;        
         console.log(response);
-        
+        if(response.data == "Saved!"){
+          Notification.open({
+                    duration: 5000,
+                    message: `Records uploaded successfully!`,
+                    position: 'is-bottom-right',
+                    type: 'is-success',
+                    hasIcon: true
+                })
+        }
+        self.isLoading = false;
+        self.firstname = null;
+        self.lastname = null;
+        self.country = null; 
+        self.code = null;
+        self.message = null;
+
       
       });
     }
