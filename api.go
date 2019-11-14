@@ -13,7 +13,6 @@ import (
 	"github.com/asdine/storm/v3"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
-	uuid "github.com/satori/go.uuid"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -84,18 +83,19 @@ func (a *API) GetRecords(w http.ResponseWriter, r *http.Request) {
 	country := r.FormValue("country")
 	code := r.FormValue("code")
 
-	log.Println("first is " + first)
-	log.Println("last is " + last)
-	log.Println("country is " + country)
-	log.Println("code is " + code)
-
-	// for key, value := range r.Form {
-	// 	log.Printf("%s => %s\n", key, value)
-	// }
-
 	hash_key := GetHash(first, last, country, code)
-	log.Println("got hash key  ")
-	log.Println(hash_key)
+
+	// TODO
+
+	// get hash_key index in records table
+
+	// unhash with the key
+
+	// unhash each appointment
+
+	// return json
+
+	// OVERLY SIMPLIFIED
 
 	var records []string
 	enc := a.FetchEncrypted()
@@ -134,10 +134,23 @@ func (a *API) StoreRecord(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("appointment info " + appointment_info)
 
-	unique_id := uuid.NewV4().String()
+	// TODO
+
+	//hash appointment_info with hash_key
+
+	//fetch all appointment's of the user currently
+
+	//unhash the contents of the user
+
+	// access the list that stores the hashed appointments
+
+	// append the hashed appointment_info to the appointments
+
+	// no longer using randomly generated UUID
+	// unique_id := uuid.NewV4().String()
 	// create a new record
 	rec := &Record{
-		ID:      unique_id,
+		ID:      string(hash_key),
 		Message: appointment_info,
 		Date:    time.Now(),
 	}
@@ -158,7 +171,7 @@ func (a *API) StoreRecord(w http.ResponseWriter, r *http.Request) {
 
 	// using a unique_id to prevent duplicate saves
 	enc := EncryptedRecord{
-		ID:       unique_id,
+		ID:       string(hash_key),
 		Contents: encrypted,
 	}
 
@@ -232,18 +245,18 @@ func NewAPI(store *storm.DB, uuid string) *API {
 	r := chi.NewRouter()
 
 	// create the database to reference
-	rec := Record{ID: "someoneelse", Message: "testing", Date: time.Now()}
+	// rec := Record{ID: "someoneelse", Message: "testing", Date: time.Now()}
 
-	err := store.Save(&rec)
-	if err != nil {
-		log.Printf("errored at %s", err)
-	}
+	// err := store.Save(&rec)
+	// if err != nil {
+	// 	log.Printf("errored at %s", err)
+	// }
 
-	rec2 := Record{ID: "me", Message: "asdf", Date: time.Now()}
-	err = store.Save(&rec2)
-	if err != nil {
-		log.Printf("errored at %s", err)
-	}
+	// rec2 := Record{ID: "me", Message: "asdf", Date: time.Now()}
+	// err = store.Save(&rec2)
+	// if err != nil {
+	// 	log.Printf("errored at %s", err)
+	// }
 
 	r.Use(middleware.DefaultCompress)
 
