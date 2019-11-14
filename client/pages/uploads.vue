@@ -71,6 +71,20 @@
                               </div>
                           </div>
                         </div>
+                        <div class="field">
+                          <div class="control">
+                            <div class="select is-primary">
+                              <!-- implement on change to append new field, also make sure the form gets 
+                              parsed correctly when sent in the post request -->
+                              <select onchange="">
+                                <option>Height</option>
+                                <option>Weight</option>
+                                <option>Vaccines</option>
+                                <option>New Diseases</option>
+                              </select>
+                            </div>
+                          </div>
+                        </div>
                       <b-loading :is-full-page="false" :active.sync="isLoading" :can-cancel="true">
                       </b-loading>
                     </form>

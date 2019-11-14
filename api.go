@@ -132,6 +132,8 @@ func (a *API) StoreRecord(w http.ResponseWriter, r *http.Request) {
 	//get the messaage
 	appointment_info := r.Form.Get("appointment_info")
 
+	log.Println("appointment info " + appointment_info)
+
 	unique_id := uuid.NewV4().String()
 	// create a new record
 	rec := &Record{

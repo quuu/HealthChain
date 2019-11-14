@@ -2,7 +2,10 @@
   <div class="container">
    <div class ="column">   
         <figure class='image'>
-            <img src='../assets/full_logo.png'/>
+          <center>
+            <img src='../assets/full_logo.png' style="width:50%;"/>
+
+          </center>
         </figure>
     </div>
 
