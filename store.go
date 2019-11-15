@@ -6,7 +6,7 @@ import (
 
 type Record struct {
 	ID      string    `json:"ID"`
-	Message string    `json:"Message"`
+	Message []byte    `json:"Message"`
 	Date    time.Time `json:"Date"`
 }
 

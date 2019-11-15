@@ -85,6 +85,13 @@ func (a *API) GetRecords(w http.ResponseWriter, r *http.Request) {
 
 	hash_key := GetHash(first, last, country, code)
 
+	patient := &Patient{}
+	patient = GetPatient(string(hash_key))
+	if patient == nil {
+		log.Println("No records for this patient")
+		return
+	}
+
 	// TODO
 
 	// get hash_key index in records table
@@ -97,19 +104,25 @@ func (a *API) GetRecords(w http.ResponseWriter, r *http.Request) {
 
 	// OVERLY SIMPLIFIED
 
-	var records []string
-	enc := a.FetchEncrypted()
-	for _, record := range enc {
+	// todo
+	// case where the key does not hash to a patient
+
+	var records []Record
+	records = patient.Records
+
+	var records_decrypt []string
+
+	for _, record := range records {
 
 		// if the decryption was successful
-		temp := Decrypt(hash_key, record.Contents)
+		temp := Decrypt(hash_key, record.Message)
 		if temp != nil {
-			records = append(records, string(temp))
+			records_decrypt = append(records_decrypt, string(temp))
 		}
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	b, err := json.MarshalIndent(records, "", "")
+	b, err := json.MarshalIndent(records_decrypt, "", "")
 	if err != nil {
 		panic(err.Error())
 	}
@@ -134,49 +147,29 @@ func (a *API) StoreRecord(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("appointment info " + appointment_info)
 
-	// TODO
+	// encrypt contents of apt and store it into a record struct
+	apt_json, err := json.Marshal(appointment_info)
+	apt_json_encyp := Encrypt(hash_key, apt_json)
 
-	//hash appointment_info with hash_key
-
-	//fetch all appointment's of the user currently
-
-	//unhash the contents of the user
-
-	// access the list that stores the hashed appointments
-
-	// append the hashed appointment_info to the appointments
+	rec_tostore := Record{ID: string(hash_key), Message: apt_json_encyp, Date: time.Now()}
 
 	// no longer using randomly generated UUID
 	// unique_id := uuid.NewV4().String()
-	// create a new record
-	rec := &Record{
-		ID:      string(hash_key),
-		Message: appointment_info,
-		Date:    time.Now(),
-	}
 
-	// conver the contents to a byte array
-	b, err := json.Marshal(rec)
-	if err != nil {
-		panic(err.Error())
-	}
+	// REVIEW: whats wrong with the record having a rand gen uuid?
+	//		the records are encapsulated within patient data
 
-	// encrypt the record
-	encrypted := Encrypt(hash_key, b)
-
-	// save the encrypted record with the id
-	// being the hash key
-	// TODO
-	// find a better way to store the id for lookup
-
-	// using a unique_id to prevent duplicate saves
-	enc := EncryptedRecord{
-		ID:       string(hash_key),
-		Contents: encrypted,
+	// gets patient if already present else makes a new patient to store
+	p := &Patient{}
+	var records_temp []Record
+	p = GetPatient(string(hash_key)) // NOTE this is a patch, method should take a []byte
+	if p == nil {
+		p := Patient{PatientKey: string(hash_key), Records: records_temp, Node: "hc_1"}
+		AddPatient(p)
 	}
 
 	// actually save it into the database
-	err = a.store.Save(&enc)
+	p.AddRecord(string(hash_key), rec_tostore)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -313,12 +306,12 @@ func GetPatient(key string) *Patient {
 	patient := &Patient{}
 	err := db.Get("patients", key, &patient)
 	if err != nil {
-		return nil // handler must catch if the get query returns nil
+		return nil // han dler must catch if the get query returns nil
 	}
 	return patient
 }
 
-func (patient *Patient) AddPatient() map[string]interface{} {
+func AddPatient(patient Patient) map[string]interface{} {
 
 	db := GetDB()
 	err := db.Set("patients", patient.PatientKey, &patient)
@@ -332,9 +325,9 @@ func (patient *Patient) AddPatient() map[string]interface{} {
 
 }
 
-func AddRecord(key string, record Record) map[string]interface{} {
+func (patient *Patient) AddRecord(key string, record Record) map[string]interface{} {
 	db := GetDB()
-	patient := &Patient{}
+
 	err := db.Get("patients", key, &patient)
 	if err != nil {
 		log.Println("The Patient could not be found")
