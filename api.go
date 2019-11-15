@@ -290,3 +290,69 @@ func (a *API) Run() {
 	}
 
 }
+
+// ================== RICH/methods ==================
+// I needed to do a little bit of refactoring
+
+// message for sending to http client
+func Message(status bool, message string) map[string]interface{} {
+	return map[string]interface{}{"status": status, "message": message}
+}
+
+func GetDB() *storm.DB {
+	db, err := storm.Open("hc.db")
+	if err != nil {
+		panic(err)
+	}
+	return db
+}
+
+func GetPatient(key string) *Patient {
+	db := GetDB()
+
+	patient := &Patient{}
+	err := db.Get("patients", key, &patient)
+	if err != nil {
+		return nil // handler must catch if the get query returns nil
+	}
+	return patient
+}
+
+func (patient *Patient) AddPatient() map[string]interface{} {
+
+	db := GetDB()
+	err := db.Set("patients", patient.PatientKey, &patient)
+	if err != nil {
+		log.Println(err)
+		return Message(false, err.Error())
+	}
+	resp := Message(true, "success")
+	resp["patient"] = patient
+	return resp
+
+}
+
+func AddRecord(key string, record Record) map[string]interface{} {
+	db := GetDB()
+	patient := &Patient{}
+	err := db.Get("patients", key, &patient)
+	if err != nil {
+		log.Println("The Patient could not be found")
+		return Message(false, err.Error())
+	}
+
+	var recs []Record
+
+	recs = patient.Records
+	recs = append(recs, record)
+	patient.Records = recs
+	err_set := db.Set("patients", patient.PatientKey, &patient)
+	if err_set != nil {
+		log.Println(err)
+		return Message(false, err.Error())
+	}
+	resp := Message(true, "success")
+	resp["patient"] = patient
+	return resp
+
+}

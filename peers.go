@@ -37,7 +37,7 @@ type Peer struct {
 }
 
 // function that handles displaying all the messages
-// TODO
+// TODO - NOTE -> this method should be fine for get/set
 // integrate with the storage
 func (pd *PeerDriver) recordHandler(w http.ResponseWriter, r *http.Request) {
 
