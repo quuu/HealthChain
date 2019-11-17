@@ -18,10 +18,9 @@ import (
 
 // API
 type API struct {
-	me    string
-	str   string
-	store *storm.DB
-	r     http.Handler
+	me  string
+	str string
+	r   http.Handler
 }
 
 // handler for main page
@@ -49,9 +48,10 @@ func (a *API) PeersHandler(w http.ResponseWriter, r *http.Request) {
 
 // gets all encrypted records
 func (a *API) FetchEncrypted() []*EncryptedRecord {
-
+	db := GetDB()
+	defer db.Close()
 	var encrypted []*EncryptedRecord
-	err := a.store.All(&encrypted)
+	err := db.All(&encrypted)
 
 	if err != nil {
 		panic(err.Error())
@@ -62,9 +62,11 @@ func (a *API) FetchEncrypted() []*EncryptedRecord {
 
 // handler to get all encrypted records currently being stored
 func (a *API) AllRecordsHandler(w http.ResponseWriter, r *http.Request) {
+	db := GetDB()
+	defer db.Close()
 
 	var records []*EncryptedRecord
-	err := a.store.All(&records)
+	err := db.All(&records)
 
 	w.Header().Set("Content-Type", "application/json")
 	b, err := json.MarshalIndent(records, "", " ")
@@ -91,6 +93,7 @@ func (a *API) GetRecords(w http.ResponseWriter, r *http.Request) {
 		log.Println("No records for this patient")
 		return
 	}
+	log.Println("Found patient", patient)
 
 	// TODO
 
@@ -110,19 +113,27 @@ func (a *API) GetRecords(w http.ResponseWriter, r *http.Request) {
 	var records []Record
 	records = patient.Records
 
-	var records_decrypt []string
+	// var records_decrypt []string
 
 	for _, record := range records {
 
-		// if the decryption was successful
-		temp := Decrypt(hash_key, record.Message)
-		if temp != nil {
-			records_decrypt = append(records_decrypt, string(temp))
+		err := json.Unmarshal(record.Message, &record.Message)
+		if err != nil {
+			log.Println("something wrong with unmasrhslling this json")
 		}
+		// if the decryption was successful
+		// temp := Decrypt(hash_key, record.Message)
+		// if temp != nil {
+		// 	err := json.Unmarshal(record, &record.Message)
+		// 	if err != nil {
+		// 		log.Println("something wrong with unmasrhslling this json")
+		// 	}
+		// 	// records_decrypt = append(records_decrypt, string(temp))
+		// }
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	b, err := json.MarshalIndent(records_decrypt, "", "")
+	b, err := json.MarshalIndent(records, "", "")
 	if err != nil {
 		panic(err.Error())
 	}
@@ -148,10 +159,11 @@ func (a *API) StoreRecord(w http.ResponseWriter, r *http.Request) {
 	log.Println("appointment info " + appointment_info)
 
 	// encrypt contents of apt and store it into a record struct
-	apt_json, err := json.Marshal(appointment_info)
-	apt_json_encyp := Encrypt(hash_key, apt_json)
+	apt_json, _ := json.Marshal(appointment_info)
+	// apt_json_encyp := Encrypt(hash_key, apt_json)
 
-	rec_tostore := Record{ID: string(hash_key), Message: apt_json_encyp, Date: time.Now()}
+	//rec_tostore := Record{ID: string(hash_key), Message: apt_json_encyp, Date: time.Now()}
+	rec_tostore := Record{ID: string(hash_key), Message: apt_json, Date: time.Now()}
 
 	// no longer using randomly generated UUID
 	// unique_id := uuid.NewV4().String()
@@ -164,15 +176,16 @@ func (a *API) StoreRecord(w http.ResponseWriter, r *http.Request) {
 	var records_temp []Record
 	p = GetPatient(string(hash_key)) // NOTE this is a patch, method should take a []byte
 	if p == nil {
+		log.Println("Patient does not exsist, making new patient")
 		p := Patient{PatientKey: string(hash_key), Records: records_temp, Node: "hc_1"}
 		AddPatient(p)
 	}
 
 	// actually save it into the database
 	p.AddRecord(string(hash_key), rec_tostore)
-	if err != nil {
-		panic(err.Error())
-	}
+	// if err != nil {
+	// 	panic(err.Error())
+	// }
 	w.Write([]byte("Saved!"))
 }
 
@@ -225,12 +238,11 @@ func GetHash(first string, last string, country string, code string) []byte {
 	return hasher.Sum(nil)
 }
 
-func NewAPI(store *storm.DB, uuid string) *API {
+func NewAPI(uuid string) *API {
 
 	// initialize a new api
 	a := &API{
-		me:    uuid,
-		store: store,
+		me: uuid,
 	}
 
 	log.Printf("initializing api \n")
@@ -272,8 +284,6 @@ func NewAPI(store *storm.DB, uuid string) *API {
 
 func (a *API) Run() {
 	// close the store once listening is done
-	defer a.store.Close()
-
 	// listen for requests
 	log.Printf("listening")
 	err := http.ListenAndServe(":3000", a.r)
@@ -302,6 +312,7 @@ func GetDB() *storm.DB {
 
 func GetPatient(key string) *Patient {
 	db := GetDB()
+	defer db.Close()
 
 	patient := &Patient{}
 	err := db.Get("patients", key, &patient)
@@ -314,6 +325,8 @@ func GetPatient(key string) *Patient {
 func AddPatient(patient Patient) map[string]interface{} {
 
 	db := GetDB()
+	defer db.Close()
+
 	err := db.Set("patients", patient.PatientKey, &patient)
 	if err != nil {
 		log.Println(err)
@@ -327,6 +340,7 @@ func AddPatient(patient Patient) map[string]interface{} {
 
 func (patient *Patient) AddRecord(key string, record Record) map[string]interface{} {
 	db := GetDB()
+	defer db.Close()
 
 	err := db.Get("patients", key, &patient)
 	if err != nil {
@@ -334,12 +348,12 @@ func (patient *Patient) AddRecord(key string, record Record) map[string]interfac
 		return Message(false, err.Error())
 	}
 
-	var recs []Record
+	// var recs []Record
 
-	recs = patient.Records
-	recs = append(recs, record)
-	patient.Records = recs
-	err_set := db.Set("patients", patient.PatientKey, &patient)
+	// recs = patient.Records
+	// recs = append(recs, record)
+	patient.Records = append(patient.Records, record)
+	err_set := db.Set("patients", key, &patient)
 	if err_set != nil {
 		log.Println(err)
 		return Message(false, err.Error())
