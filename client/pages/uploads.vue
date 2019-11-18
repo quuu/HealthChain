@@ -60,28 +60,24 @@
                           <div class="field column">
                             Appointment Information:
                             
-                            <b-input class="control" type="textarea" placeholder="Summary"></b-input>
+                            <b-input class="control" type="textarea" placeholder="Summary" v-model="summary"></b-input>
 
                             <div class="control">
                               Fields:
-                                <b-field v-for="i in numFields" :key="i" >
-                                    <b-select class="column is-2" placeholder="Select Field">
-                                      <option value="height">Height</option>
-                                      <option value="weight">Weight</option>
-                                      <option value="vaccination">Vaccination</option>
-                                      <option value="weight">Weight</option>
-                                      <option value="sickness">Sickness</option>
-                                      <option value="eyesight">Eyesight</option>
-                                      <option value="blood-pressure">Blood Pressure</option>
-                                    </b-select>
-                                    <b-input class ="column is-6" placeholder="Value" ></b-input>
-                                    <div class="column is-1" ><b-button class="is-danger" icon-left="delete" @click="numFields--"></b-button></div>
+                                <b-field v-for="(field, index) in fields" :key="field.id">
+                                 <div class="columns"> 
+                                  <formField 
+                                   :id="field.id"
+                                   @inputData= "inputData"/>
+                                  <b-button type="is-danger" icon-right="delete" @click="fields.splice(index, 1)" />
+                                  </div>
                                </b-field>
+
                             </div>
                           </div>
                           
                         </div>
-                        <b-button rounded @click="numFields++">
+                        <b-button rounded @click="addField(numFields++)">
                             Add Field
                           </b-button>
 
@@ -105,9 +101,12 @@
 <script>
 
 import axios from 'axios';
+import formField from '@/components/formField'
 import { NotificationProgrammatic as Notification } from 'buefy'
 export default {
-
+  components:{
+    formField
+  },
   data() {
     return {
       firstname: null,
@@ -116,7 +115,9 @@ export default {
       code: null,
       message: {},
       isLoading: false,
-      numFields:1
+      numFields:0,
+      fields: [],
+      summary: null
     
     };
   },
@@ -136,7 +137,7 @@ export default {
     },
 
     async postHealthData(){
-      console.log(message);
+      console.log(this.fields);
       this.openLoading();
       let self =this;
       await axios({
@@ -174,8 +175,26 @@ export default {
 
       
       });
+    },
+    addField(ID){
+      this.fields.push({id: ID});
+      
+    },
+    inputData(data){
+      var i;
+      this.fields.forEach(function(field, index){
+        if(data.id == field.id){
+          i = index;
+        }
+      });
+      if(data.field != null){
+        this.fields[i][data.field] = data.value;
+      }
+      
     }
   }
+
+  
   
 }
 </script>
