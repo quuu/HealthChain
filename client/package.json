@@ -15,6 +15,7 @@
     "@nuxtjs/bulma": "^1.2.1",
     "@nuxtjs/proxy": "^1.3.3",
     "axios": "^0.19.0",
+    "buefy": "^0.8.6",
     "cross-env": "^5.2.0",
     "express": "^4.16.4",
     "moment": "^2.24.0",
