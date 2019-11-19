@@ -131,15 +131,19 @@ export default {
       form.append("last", this.lastname)
       form.append("country", this.country)
       form.append("code", this.code)
-      form.append("appointment_info", this.message)
-
+      this.message.summary=this.summary;
+      var self=this;
+      this.fields.forEach(function(data, index){
+        self.message[data.field]= data.value;
+      });
+      form.append("appointment_info", this.message);
       return form
     },
 
     async postHealthData(){
-      console.log(this.fields);
       this.openLoading();
       let self =this;
+      console.log(this.loadData());
       await axios({
         method: 'post',
         url: '/api/new_record',
@@ -188,7 +192,8 @@ export default {
         }
       });
       if(data.field != null){
-        this.fields[i][data.field] = data.value;
+        this.fields[i].field = data.field;
+        this.fields[i].value = data.value;
       }
       
     }
