@@ -139,11 +139,25 @@ export default {
       form.append("appointment_info", this.message);
       return form
     },
+    loadData2(){
+      var self=this;
+      this.fields.forEach(function(data, index){
+        self.message[data.field]= data.value;
+      });
+      return  {
+        "first": this.firstname,
+        "last": this.lastname,
+        "country": this.country,
+        "code": this.code,
+        "appointment_info": this.message
 
+      }
+    },
+    
     async postHealthData(){
       this.openLoading();
       let self =this;
-      console.log(this.loadData());
+      console.log(this.loadData2());
       await axios({
         method: 'post',
         url: '/api/new_record',
@@ -151,7 +165,7 @@ export default {
         headers: { 'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,OPTIONS',
         'Content-Type': 'multipart/form-data'},
-        data: this.loadData()
+        data: this.loadData2()
         // {
         //   first: this.firstname,
         //   last: this.lastname,
