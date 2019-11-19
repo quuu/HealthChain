@@ -6,6 +6,7 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -154,12 +155,13 @@ func (a *API) StoreRecord(w http.ResponseWriter, r *http.Request) {
 	hash_key := GetHash(first, last, country, code)
 
 	//get the messaage
-	appointment_info := r.Form.Get("appointment_info")
-
-	log.Println("appointment info " + appointment_info)
+	appointment_info := r.FormValue("appointment_info")
 
 	// encrypt contents of apt and store it into a record struct
 	apt_json, _ := json.Marshal(appointment_info)
+
+	fmt.Println("testing")
+	fmt.Println(string(apt_json))
 	// apt_json_encyp := Encrypt(hash_key, apt_json)
 
 	//rec_tostore := Record{ID: string(hash_key), Message: apt_json_encyp, Date: time.Now()}
