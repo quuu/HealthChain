@@ -1,0 +1,24 @@
+{
+  "ID": "unique ID from hash",
+  "DATE": "2019-11-01T04:00:00.000Z",
+  "DESCRIPTION": "Basic description of the appointment, should have what was went over and any info",
+  "DoctorName": "Dougie Howser",
+  "Details": {
+    "VaccinationReceived": [
+      "MMR",
+      "Tetanus"
+    ],
+    "BloodType": "A-Positive",
+    "Height": "5'9\"",
+    "Weight": "175lbs",
+    "EyeSight": "20x20"
+  },
+  "Files:": {
+    "ImmunizationForm": "Authform.pdf",
+    "X_Ray": [
+      "Xray1.png",
+      "Xray2.png",
+      "Xray3.png"
+    ]
+  }
+}

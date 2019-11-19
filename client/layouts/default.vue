@@ -92,5 +92,10 @@ a {
     border-color:  #E80000;  
     box-shadow: 0 0 0 0.125em  rgb(232,0,0,.25);
 }
+
+.button:focus, .button.is-focused{
+  border-color: #E80000;
+  box-shadow: 0 0 0 0.125em rgb(232,0,0,.25);
+}
 </style>
 
