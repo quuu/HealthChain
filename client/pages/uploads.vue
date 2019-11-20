@@ -131,7 +131,7 @@ export default {
       form.append("last", this.lastname)
       form.append("country", this.country)
       form.append("code", this.code)
-      this.message.summary=this.summary;
+      this.message["summary"]=this.summary;
       var self=this;
       this.fields.forEach(function(data, index){
         self.message[data.field]= data.value;
@@ -140,6 +140,7 @@ export default {
       return form
     },
     loadData2(){
+      this.message["summary"]=this.summary;
       var self=this;
       this.fields.forEach(function(data, index){
         self.message[data.field]= data.value;
