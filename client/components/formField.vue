@@ -4,7 +4,6 @@
        <option value="height">Height</option>
       <option value="weight">Weight</option>
       <option value="vaccination">Vaccination</option>
-      <option value="weight">Weight</option>
       <option value="sickness">Sickness</option>
       <option value="eyesight">Eyesight</option>
       <option value="blood-pressure">Blood Pressure</option>

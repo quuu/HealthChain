@@ -74,7 +74,7 @@
         v-for="data in healthData" 
         :key="data.ID"
         :date="data.Date"
-        :message="data.Message"
+        :appt_info="data"
       />
     </section>
 
@@ -140,7 +140,7 @@ export default {
       }).then(function(response){
         //this.showForm =false;        
         console.log(response.data);
-        if(self.data == null){
+        if(response.data == null){
           Notification.open({
                     duration: 5000,
                     message: `Error: No records available for this person`,
