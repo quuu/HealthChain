@@ -114,14 +114,21 @@ func (a *API) GetRecords(w http.ResponseWriter, r *http.Request) {
 	var records []Record
 	records = patient.Records
 
+	var decrypted_records []string
+
 	// var records_decrypt []string
 
 	for _, record := range records {
 
-		err := json.Unmarshal(record.Message, &record.Message)
-		if err != nil {
-			log.Println("something wrong with unmasrhslling this json")
-		}
+		fmt.Println("drcypring ")
+		decrypted := Decrypt(hash_key, record.Message)
+		fmt.Println(string(decrypted))
+		decrypted_records = append(decrypted_records, string(decrypted))
+
+		// err := json.Unmarshal(record.Message, &record.Message)
+		// if err != nil {
+		// 	log.Println("something wrong with unmasrhslling this json")
+		// }
 		// if the decryption was successful
 		// temp := Decrypt(hash_key, record.Message)
 		// if temp != nil {
@@ -134,7 +141,7 @@ func (a *API) GetRecords(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	b, err := json.MarshalIndent(records, "", "")
+	b, err := json.MarshalIndent(decrypted_records, "", "")
 	if err != nil {
 		panic(err.Error())
 	}
@@ -144,46 +151,39 @@ func (a *API) GetRecords(w http.ResponseWriter, r *http.Request) {
 
 func (a *API) StoreRecord(w http.ResponseWriter, r *http.Request) {
 
-	// fmt.Println(r.Body)
+	// decode the response body
 	decoder := json.NewDecoder(r.Body)
 
-	var t FormData
+	// extract the data into FormData struct
+	var response FormData
 
-	err := decoder.Decode(&t)
+	err := decoder.Decode(&response)
+	if err != nil {
+		panic(err)
+	}
+
+	// get the appointment info
+	output, err := json.Marshal(response.Appointment_Info)
 	if err != nil {
 
 	}
-	// fmt.Println(t.First)
-	// fmt.Println(t.Last)
-	// fmt.Println(t.Country)
-	// fmt.Println(t.Code)
-	output, err := json.Marshal(t)
-	if err != nil {
+	fmt.Println(string(output))
 
-	}
-	fmt.Println(t.Appointment_Info)
-	// r.ParseMultipartForm(0)
-
-	first := t.First
-	last := t.Last
-	country := t.Country
-	code := t.Code
+	first := response.First
+	last := response.Last
+	country := response.Country
+	code := response.Code
 
 	// get the hash of the user
 	hash_key := GetHash(first, last, country, code)
 
 	//get the messaage
-	// appointment_info := r.FormValue("appointment_info")
+	apt_encrypt := Encrypt(hash_key, output)
 
-	// encrypt contents of apt and store it into a record struct
-	apt_json, _ := json.Marshal(output)
-
-	fmt.Println("testing")
-	fmt.Println(apt_json)
 	// apt_json_encyp := Encrypt(hash_key, apt_json)
 
 	//rec_tostore := Record{ID: string(hash_key), Message: apt_json_encyp, Date: time.Now()}
-	rec_tostore := Record{ID: string(hash_key), Message: apt_json, Date: time.Now()}
+	rec_to_store := Record{ID: string(hash_key), Message: apt_encrypt, Date: time.Now()}
 
 	// no longer using randomly generated UUID
 	// unique_id := uuid.NewV4().String()
@@ -202,7 +202,7 @@ func (a *API) StoreRecord(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// actually save it into the database
-	p.AddRecord(string(hash_key), rec_tostore)
+	p.AddRecord(string(hash_key), rec_to_store)
 	// if err != nil {
 	// 	panic(err.Error())
 	// }
@@ -258,7 +258,7 @@ func GetHash(first string, last string, country string, code string) []byte {
 	return hasher.Sum(nil)
 }
 
-func NewAPI(uuid string) *API {
+func NewAPI(uuid string, db *storm.DB) *API {
 
 	// initialize a new api
 	a := &API{
@@ -268,20 +268,6 @@ func NewAPI(uuid string) *API {
 	log.Printf("initializing api \n")
 
 	r := chi.NewRouter()
-
-	// create the database to reference
-	// rec := Record{ID: "someoneelse", Message: "testing", Date: time.Now()}
-
-	// err := store.Save(&rec)
-	// if err != nil {
-	// 	log.Printf("errored at %s", err)
-	// }
-
-	// rec2 := Record{ID: "me", Message: "asdf", Date: time.Now()}
-	// err = store.Save(&rec2)
-	// if err != nil {
-	// 	log.Printf("errored at %s", err)
-	// }
 
 	r.Use(middleware.DefaultCompress)
 
