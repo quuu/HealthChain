@@ -10,6 +10,7 @@ type FormData struct {
 	Country          string `json:"country"`
 	Code             string `json:"code"`
 	Appointment_Info struct {
+		Summary     string `json:"summary"`
 		Height      string `json:"height"`
 		Weight      string `json:"weight"`
 		Vaccination string `json:"vaccination"`
