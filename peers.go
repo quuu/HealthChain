@@ -37,7 +37,7 @@ type Peer struct {
 }
 
 // function that handles displaying all the messages
-// TODO
+// TODO - NOTE -> this method should be fine for get/set
 // integrate with the storage
 func (pd *PeerDriver) recordHandler(w http.ResponseWriter, r *http.Request) {
 
@@ -73,11 +73,10 @@ func (pd *PeerDriver) peerHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // Create a PeerDriver object
-func CreatePeerDriver(store *storm.DB) *PeerDriver {
+func CreatePeerDriver() *PeerDriver {
 	pd := &PeerDriver{
 		m:     &sync.Mutex{},
 		peers: map[string]*Peer{},
-		store: store,
 	}
 	return pd
 }
