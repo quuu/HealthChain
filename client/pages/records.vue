@@ -47,16 +47,16 @@
                                 </p>
                           </div>
                           <div class="field column">
-                            <button class="button is-pulled-right" >
-                              Clear Form
-                            </button>
-                          </div>
-                          <div class="field column">
                               <button class="button is-danger" @click.prevent=" () => {
                                 getHealthData()
                                 }" >
                                   Request Records
                               </button>
+                          </div>
+                          <div class="field column">
+                            <button class="button is-pulled-right" >
+                              Clear Form
+                            </button>
                           </div>
                         </div>
                       <b-loading :is-full-page="false" :active.sync="isLoading" :can-cancel="true">

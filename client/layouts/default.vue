@@ -56,7 +56,7 @@ a {
 }
 
 .navbar-item img {
-    max-height: 3rem;
+    max-height: 2rem;
 }
 
 .color_1{
