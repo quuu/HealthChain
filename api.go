@@ -122,7 +122,7 @@ func (a *API) GetRecords(w http.ResponseWriter, r *http.Request) {
 
 		fmt.Println("drcypring ")
 		decrypted := Decrypt(hash_key, record.Message)
-		fmt.Println(string(decrypted))
+		fmt.Println(record.Date)
 		decrypted_records = append(decrypted_records, string(decrypted))
 
 		// err := json.Unmarshal(record.Message, &record.Message)
@@ -161,6 +161,8 @@ func (a *API) StoreRecord(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
+
+	response.Appointment_Info.Date = time.Now()
 
 	// get the appointment info
 	output, err := json.Marshal(response.Appointment_Info)

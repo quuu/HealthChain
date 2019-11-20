@@ -16,6 +16,7 @@ type FormData struct {
 		Vaccination string `json:"vaccination"`
 		Sickness    string `json:"sickness"`
 		Eyesight    string `json:"eyesight"`
+		Date        time.Time
 	} `json:"appointment_info"`
 }
 
