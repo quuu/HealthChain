@@ -4,6 +4,20 @@ import (
 	"time"
 )
 
+type FormData struct {
+	First            string `json:"first"`
+	Last             string `json:"last"`
+	Country          string `json:"country"`
+	Code             string `json:"code"`
+	Appointment_Info struct {
+		Height      string `json:"height"`
+		Weight      string `json:"weight"`
+		Vaccination string `json:"vaccination"`
+		Sickness    string `json:"sickness"`
+		Eyesight    string `json:"eyesight"`
+	} `json:"appointment_info"`
+}
+
 type Record struct {
 	ID      string    `json:"ID"`
 	Message []byte    `json:"Message"`

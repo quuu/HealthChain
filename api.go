@@ -144,24 +144,42 @@ func (a *API) GetRecords(w http.ResponseWriter, r *http.Request) {
 
 func (a *API) StoreRecord(w http.ResponseWriter, r *http.Request) {
 
-	r.ParseMultipartForm(0)
+	// fmt.Println(r.Body)
+	decoder := json.NewDecoder(r.Body)
 
-	first := r.FormValue("first")
-	last := r.FormValue("last")
-	country := r.FormValue("country")
-	code := r.FormValue("code")
+	var t FormData
+
+	err := decoder.Decode(&t)
+	if err != nil {
+
+	}
+	// fmt.Println(t.First)
+	// fmt.Println(t.Last)
+	// fmt.Println(t.Country)
+	// fmt.Println(t.Code)
+	output, err := json.Marshal(t)
+	if err != nil {
+
+	}
+	fmt.Println(t.Appointment_Info)
+	// r.ParseMultipartForm(0)
+
+	first := t.First
+	last := t.Last
+	country := t.Country
+	code := t.Code
 
 	// get the hash of the user
 	hash_key := GetHash(first, last, country, code)
 
 	//get the messaage
-	appointment_info := r.FormValue("appointment_info")
+	// appointment_info := r.FormValue("appointment_info")
 
 	// encrypt contents of apt and store it into a record struct
-	apt_json, _ := json.Marshal(appointment_info)
+	apt_json, _ := json.Marshal(output)
 
 	fmt.Println("testing")
-	fmt.Println(string(apt_json))
+	fmt.Println(apt_json)
 	// apt_json_encyp := Encrypt(hash_key, apt_json)
 
 	//rec_tostore := Record{ID: string(hash_key), Message: apt_json_encyp, Date: time.Now()}
