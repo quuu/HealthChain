@@ -258,7 +258,7 @@ func GetHash(first string, last string, country string, code string) []byte {
 	return hasher.Sum(nil)
 }
 
-func NewAPI(uuid string, db *storm.DB) *API {
+func NewAPI(uuid string) *API {
 
 	// initialize a new api
 	a := &API{

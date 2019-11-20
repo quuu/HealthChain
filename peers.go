@@ -73,11 +73,10 @@ func (pd *PeerDriver) peerHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // Create a PeerDriver object
-func CreatePeerDriver(db *storm.DB) *PeerDriver {
+func CreatePeerDriver() *PeerDriver {
 	pd := &PeerDriver{
 		m:     &sync.Mutex{},
 		peers: map[string]*Peer{},
-		store: db,
 	}
 	return pd
 }
