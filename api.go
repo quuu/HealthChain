@@ -87,8 +87,6 @@ func (a *API) GetRecords(w http.ResponseWriter, r *http.Request) {
 	hash_key := GetHash(first, last, country, code)
 
 	patient := &Patient{}
-	// fmt.Println("the hash key is --")
-	// fmt.Println(string(hash_key))
 	patient = GetPatient(hash_key)
 
 	if patient == nil {
@@ -112,9 +110,6 @@ func (a *API) GetRecords(w http.ResponseWriter, r *http.Request) {
 	var records []Record
 	records = patient.Records
 
-	fmt.Println("these are records")
-	fmt.Println(records)
-
 	var decrypted_records []string
 
 	// var records_decrypt []string
@@ -123,8 +118,6 @@ func (a *API) GetRecords(w http.ResponseWriter, r *http.Request) {
 
 		// decrypt the record
 		decrypted := Decrypt(hash_key, record.Message)
-		fmt.Println("decrypting")
-		fmt.Println(string(decrypted))
 
 		// add it to the return list
 		decrypted_records = append(decrypted_records, string(decrypted))
@@ -168,15 +161,10 @@ func (a *API) StoreRecord(w http.ResponseWriter, r *http.Request) {
 
 	// get the hash of the user
 	hash_key := GetHash(first, last, country, code)
-	// fmt.Println("stored record has=-=-=-=-")
-	// fmt.Println(string(hash_key))
 
 	//get the messaage
 	apt_encrypt := Encrypt(hash_key, output)
 
-	// apt_json_encyp := Encrypt(hash_key, apt_json)
-
-	//rec_tostore := Record{ID: string(hash_key), Message: apt_json_encyp, Date: time.Now()}
 	rec_to_store := Record{ID: hash_key, Message: apt_encrypt, Date: time.Now(), Type: "Message"}
 
 	// REVIEW: whats wrong with the record having a rand gen uuid?
@@ -201,16 +189,6 @@ func (a *API) StoreRecord(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	// var records []EncryptedRecord
-
-	// err = peer_db.All(&records)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// for _, record := range records {
-	// 	fmt.Println(record.PatientID)
-	// }
-
 	peer_db.Close()
 
 	// actually save it into the database
@@ -222,7 +200,6 @@ func (a *API) StoreRecord(w http.ResponseWriter, r *http.Request) {
 // a hashed encoding and a stream of bytes to encode
 func Encrypt(encoding []byte, data []byte) []byte {
 	block, _ := aes.NewCipher(encoding)
-	// b := base64.StdEncoding.EncodeToString((data))
 	gcm, err := cipher.NewGCM(block)
 	if err != nil {
 		panic(err.Error())
@@ -263,7 +240,6 @@ func GetHash(first string, last string, country string, code string) []byte {
 	hasher := sha256.New()
 	hasher.Write([]byte(first + last + country + code))
 
-	// log.Println("made the hash " + string(hasher.Sum(nil)))
 	return hasher.Sum(nil)
 }
 
@@ -307,7 +283,6 @@ func (a *API) Run() {
 
 }
 
-// ================== RICH/methods ==================
 // I needed to do a little bit of refactoring
 
 // message for sending to http client

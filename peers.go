@@ -357,7 +357,6 @@ func (pd *PeerDriver) handleRecords(encrypted_records []*EncryptedRecord) {
 	for _, rec := range encrypted_records {
 
 		var records_temp []Record
-		log.Println("looking at fetched records now")
 		p := &Patient{}
 		p = GetPatient(rec.PatientID)
 
@@ -367,18 +366,14 @@ func (pd *PeerDriver) handleRecords(encrypted_records []*EncryptedRecord) {
 			p := Patient{PatientKey: rec.PatientID, Records: records_temp, Node: "hc_1"}
 			AddPatient(p)
 		} else {
-			// if the patient does exist
-			log.Printf("found patient!!!!!!! with has % x\n ", rec.PatientID)
-			log.Printf("the has is stored like %s\n", rec.PatientID)
 
+			// if the patient does exist
 			found := false
 			// go through all the records
 			for _, record := range p.Records {
-				fmt.Println("this is a record in patient")
 
 				// found the fetched record inside of Patient p
 				if string(record.Message) == string(rec.Contents) {
-					fmt.Println("found record")
 					found = true
 				}
 			}
@@ -387,42 +382,24 @@ func (pd *PeerDriver) handleRecords(encrypted_records []*EncryptedRecord) {
 
 				// locally save this record
 				temp := &EncryptedRecord{PatientID: rec.PatientID, Contents: rec.Contents}
-				fmt.Println("storing new record---")
-				// fmt.Println(p.Records)
 
 				// add to discoverable database
-				// pd.m.Lock()
 				db := PublicDB()
 				err := db.Save(temp)
 				if err != nil {
 					panic(err)
 				}
 				db.Close()
-				// pd.m.Unlock()
 
 				// create record to append to user
 				rec_to_store := Record{ID: rec.PatientID, Message: rec.Contents, Date: time.Now(), Type: "Message"}
-				// pd.m.Lock()
-				ret := p.AddRecord(p.PatientKey, rec_to_store)
-				for key, value := range ret {
-					fmt.Println("Key:", key, "Value:", value)
-				}
-				// pd.m.Unlock()
+				_ = p.AddRecord(p.PatientKey, rec_to_store)
 				fmt.Println("this is after a save")
 				fmt.Println(p.Records)
 
 			}
 
 		}
-
-		// if the record doesn't currently exist
-
-		// otherwise, check the records and make sure it's not a duplicate
-
-		// err := db.Save(rec)
-		// if err != nil {
-		// 	panic(err.Error())
-		// }
 	}
 }
 
