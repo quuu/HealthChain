@@ -16,24 +16,26 @@ type FormData struct {
 		Vaccination string `json:"vaccination"`
 		Sickness    string `json:"sickness"`
 		Eyesight    string `json:"eyesight"`
+		Date        time.Time
 	} `json:"appointment_info"`
 }
 
 type Record struct {
-	ID      string    `json:"ID"`
+	ID      []byte    `json:"ID"`
 	Message []byte    `json:"Message"`
 	Date    time.Time `json:"Date"`
+	Type    string    `json:"Type"`
 }
 
 type Patient struct {
-	PatientKey string   `storm:"id"` // public key to access a paitnets records
+	PatientKey []byte   `storm:"id"` // public key to access a paitnets records
 	Records    []Record // encrypted json string for records asspcotaetd with this patient
 	Node       string   // identifies what node this record patient was created on
 }
 
 type EncryptedRecord struct {
-	ID       string
-	Contents []byte
+	Contents  []byte `storm:"id"`
+	PatientID []byte
 }
 
 type DecryptedRecord struct {
