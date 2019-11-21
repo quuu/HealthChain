@@ -117,6 +117,8 @@ func (a *API) GetRecords(w http.ResponseWriter, r *http.Request) {
 
 		// decrypt the record
 		decrypted := Decrypt(hash_key, record.Message)
+		fmt.Println("decrypting")
+		fmt.Println(string(decrypted))
 
 		// add it to the return list
 		decrypted_records = append(decrypted_records, string(decrypted))
