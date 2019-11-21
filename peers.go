@@ -382,9 +382,9 @@ func (pd *PeerDriver) handleRecords(encrypted_records []*EncryptedRecord) {
 
 		}
 
-		err := db.Save(rec)
-		if err != nil {
-			panic(err.Error())
-		}
+		// err := db.Save(rec)
+		// if err != nil {
+		// 	panic(err.Error())
+		// }
 	}
 }
