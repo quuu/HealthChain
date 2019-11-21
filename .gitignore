@@ -5,6 +5,7 @@ db.json
 go.sum
 healthchain
 node_modules/
-.nuxt/*
-client/.nuxt/*
+.nuxt/
+client/.nuxt/
 *.db
+client/package-lock.json
