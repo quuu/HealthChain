@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net"
 	"net/http"
 	"net/url"
@@ -12,7 +13,6 @@ import (
 
 	"strconv"
 
-	"github.com/asdine/storm/v3"
 	"github.com/go-chi/chi"
 	"github.com/grandcat/zeroconf"
 	uuid "github.com/satori/go.uuid"
@@ -26,7 +26,6 @@ type PeerDriver struct {
 	me    *Peer
 	peers map[string]*Peer
 	api   *API
-	store *storm.DB
 }
 
 // Peer is a helper struct to store information about the peer
@@ -44,7 +43,10 @@ func (pd *PeerDriver) recordHandler(w http.ResponseWriter, r *http.Request) {
 	// host all the
 	w.Header().Set("Content-Type", "application/json")
 	var records []*EncryptedRecord
-	err := pd.store.All(&records)
+	db := PublicDB()
+	defer db.Close()
+	err := db.All(&records)
+	fmt.Println(records)
 	b, err := json.MarshalIndent(records, "", " ")
 	if err != nil {
 		panic(err.Error())
@@ -351,9 +353,36 @@ func (pd *PeerDriver) fetchRecords() {
 // 	and save each into storm
 func (pd *PeerDriver) handleRecords(encrypted_records []*EncryptedRecord) {
 
+	db := GetDB()
+	defer db.Close()
+	var records_temp []Record
 	for _, rec := range encrypted_records {
 
-		err := pd.store.Save(rec)
+		p := &Patient{}
+		p = GetPatient(string(rec.PatientID))
+
+		// if the patient doesn't exist
+		if p == nil {
+			log.Println("Patient does not exist, making new patient")
+			p := Patient{PatientKey: string(rec.PatientID), Records: records_temp, Node: "hc_1"}
+			AddPatient(p)
+		} else {
+
+			found := true
+			for _, record := range p.Records {
+				if found {
+
+				}
+				fmt.Println("record is " + string(record.Message))
+				fmt.Println("encrypted record is " + string(rec.Contents))
+				// found = false
+				// if(record ==)
+			}
+			// otherwise, check the records and make sure it's not a duplicate
+
+		}
+
+		err := db.Save(rec)
 		if err != nil {
 			panic(err.Error())
 		}

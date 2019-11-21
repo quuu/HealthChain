@@ -42,7 +42,6 @@ func (a *API) PeersHandler(w http.ResponseWriter, r *http.Request) {
 	b, err := json.MarshalIndent("a", "", " ")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		// return err
 	}
 	w.Write(b)
 }
@@ -73,7 +72,6 @@ func (a *API) AllRecordsHandler(w http.ResponseWriter, r *http.Request) {
 	b, err := json.MarshalIndent(records, "", " ")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		// return err
 	}
 	w.Write(b)
 }
@@ -106,9 +104,6 @@ func (a *API) GetRecords(w http.ResponseWriter, r *http.Request) {
 
 	// return json
 
-	// OVERLY SIMPLIFIED
-
-	// todo
 	// case where the key does not hash to a patient
 
 	var records []Record
@@ -120,24 +115,11 @@ func (a *API) GetRecords(w http.ResponseWriter, r *http.Request) {
 
 	for _, record := range records {
 
-		fmt.Println("drcypring ")
+		// decrypt the record
 		decrypted := Decrypt(hash_key, record.Message)
-		fmt.Println(record.Date)
-		decrypted_records = append(decrypted_records, string(decrypted))
 
-		// err := json.Unmarshal(record.Message, &record.Message)
-		// if err != nil {
-		// 	log.Println("something wrong with unmasrhslling this json")
-		// }
-		// if the decryption was successful
-		// temp := Decrypt(hash_key, record.Message)
-		// if temp != nil {
-		// 	err := json.Unmarshal(record, &record.Message)
-		// 	if err != nil {
-		// 		log.Println("something wrong with unmasrhslling this json")
-		// 	}
-		// 	// records_decrypt = append(records_decrypt, string(temp))
-		// }
+		// add it to the return list
+		decrypted_records = append(decrypted_records, string(decrypted))
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -185,10 +167,7 @@ func (a *API) StoreRecord(w http.ResponseWriter, r *http.Request) {
 	// apt_json_encyp := Encrypt(hash_key, apt_json)
 
 	//rec_tostore := Record{ID: string(hash_key), Message: apt_json_encyp, Date: time.Now()}
-	rec_to_store := Record{ID: string(hash_key), Message: apt_encrypt, Date: time.Now()}
-
-	// no longer using randomly generated UUID
-	// unique_id := uuid.NewV4().String()
+	rec_to_store := Record{ID: string(hash_key), Message: apt_encrypt, Date: time.Now(), Type: "Message"}
 
 	// REVIEW: whats wrong with the record having a rand gen uuid?
 	//		the records are encapsulated within patient data
@@ -203,11 +182,17 @@ func (a *API) StoreRecord(w http.ResponseWriter, r *http.Request) {
 		AddPatient(p)
 	}
 
+	peer_db := PublicDB()
+	defer peer_db.Close()
+
+	enc := &EncryptedRecord{PatientID: string(hash_key), Contents: rec_to_store.Message}
+	err = peer_db.Save(enc)
+	if err != nil {
+		panic(err)
+	}
+
 	// actually save it into the database
 	p.AddRecord(string(hash_key), rec_to_store)
-	// if err != nil {
-	// 	panic(err.Error())
-	// }
 	w.Write([]byte("Saved!"))
 }
 
@@ -243,7 +228,6 @@ func Decrypt(encoding []byte, data []byte) []byte {
 
 	// failed to decrypt, would normally throw an error
 	if err != nil {
-		// panic(err.Error())
 		return nil
 	}
 	return plaintext
@@ -272,8 +256,6 @@ func NewAPI(uuid string) *API {
 	r := chi.NewRouter()
 
 	r.Use(middleware.DefaultCompress)
-
-	// r.Method("GET", "/static/*", http.FileServer)
 
 	r.Get("/", a.IndexHandler)
 
@@ -318,6 +300,14 @@ func GetDB() *storm.DB {
 	return db
 }
 
+func PublicDB() *storm.DB {
+	db, err := storm.Open("records.db")
+	if err != nil {
+		panic(err)
+	}
+	return db
+}
+
 func GetPatient(key string) *Patient {
 	db := GetDB()
 	defer db.Close()
@@ -330,6 +320,7 @@ func GetPatient(key string) *Patient {
 	return patient
 }
 
+//
 func AddPatient(patient Patient) map[string]interface{} {
 
 	db := GetDB()
@@ -355,11 +346,6 @@ func (patient *Patient) AddRecord(key string, record Record) map[string]interfac
 		log.Println("The Patient could not be found")
 		return Message(false, err.Error())
 	}
-
-	// var recs []Record
-
-	// recs = patient.Records
-	// recs = append(recs, record)
 	patient.Records = append(patient.Records, record)
 	err_set := db.Set("patients", key, &patient)
 	if err_set != nil {

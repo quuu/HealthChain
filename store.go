@@ -24,6 +24,7 @@ type Record struct {
 	ID      string    `json:"ID"`
 	Message []byte    `json:"Message"`
 	Date    time.Time `json:"Date"`
+	Type    string    `json:"Type"`
 }
 
 type Patient struct {
@@ -33,8 +34,8 @@ type Patient struct {
 }
 
 type EncryptedRecord struct {
-	ID       string
-	Contents []byte
+	PatientID string
+	Contents  []byte `storm:"id"`
 }
 
 type DecryptedRecord struct {
