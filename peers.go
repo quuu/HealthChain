@@ -391,14 +391,14 @@ func (pd *PeerDriver) handleRecords(encrypted_records []*EncryptedRecord) {
 				fmt.Println(p.Records)
 
 				// add to discoverable database
-				pd.m.Lock()
+				// pd.m.Lock()
 				db := PublicDB()
 				err := db.Save(temp)
 				if err != nil {
 					panic(err)
 				}
 				db.Close()
-				pd.m.Unlock()
+				// pd.m.Unlock()
 
 				// create record to append to user
 				rec_to_store := Record{ID: string(rec.PatientID), Message: rec.Contents, Date: time.Now(), Type: "Message"}
