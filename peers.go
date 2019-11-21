@@ -353,11 +353,10 @@ func (pd *PeerDriver) fetchRecords() {
 // 	and save each into storm
 func (pd *PeerDriver) handleRecords(encrypted_records []*EncryptedRecord) {
 
-	var records_temp []Record
-
 	// for all encrypted records just fetched
 	for _, rec := range encrypted_records {
 
+		var records_temp []Record
 		log.Println("looking at fetched records now")
 		p := &Patient{}
 		p = GetPatient(string(rec.PatientID))
@@ -389,14 +388,24 @@ func (pd *PeerDriver) handleRecords(encrypted_records []*EncryptedRecord) {
 				// locally save this record
 				temp := &EncryptedRecord{PatientID: rec.PatientID, Contents: rec.Contents}
 				fmt.Println("storing new record---")
+				fmt.Println(p.Records)
+
+				// add to discoverable database
+				pd.m.Lock()
 				db := PublicDB()
 				err := db.Save(temp)
 				if err != nil {
 					panic(err)
 				}
 				db.Close()
+				pd.m.Unlock()
+
+				// create record to append to user
 				rec_to_store := Record{ID: string(rec.PatientID), Message: rec.Contents, Date: time.Now(), Type: "Message"}
 				p.AddRecord(string(rec.PatientID), rec_to_store)
+				fmt.Println("this is after a save")
+				fmt.Println(p.Records)
+
 			}
 
 			// otherwise, check the records and make sure it's not a duplicate
