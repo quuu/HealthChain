@@ -353,8 +353,8 @@ func (pd *PeerDriver) fetchRecords() {
 // 	and save each into storm
 func (pd *PeerDriver) handleRecords(encrypted_records []*EncryptedRecord) {
 
-	// db := GetDB()
-	// defer db.Close()
+	db := PublicDB()
+	defer db.Close()
 	var records_temp []Record
 	for _, rec := range encrypted_records {
 
@@ -369,13 +369,26 @@ func (pd *PeerDriver) handleRecords(encrypted_records []*EncryptedRecord) {
 		} else {
 			log.Println("found patient!!!!!!!")
 
+			// go through all the cords
+
+			found := false
 			for _, record := range p.Records {
 				fmt.Println("this is a record in patient")
-				fmt.Println("record is " + string(record.Message))
-				fmt.Println("encrypted record is " + string(rec.Contents))
-				// found = false
-				// if(record ==)
+				if string(record.Message) == string(rec.Contents) {
+					fmt.Println("found record")
+					found = true
+				}
 			}
+			if !found {
+				fmt.Println("storing new record---")
+				err := db.Save(&rec)
+				if err != nil {
+					panic(err)
+				}
+				rec_to_store := Record{ID: string(rec.PatientID), Message: rec.Contents, Date: time.Now(), Type: "Message"}
+				p.AddRecord(string(rec.PatientID), rec_to_store)
+			}
+
 			// otherwise, check the records and make sure it's not a duplicate
 
 		}
@@ -386,3 +399,5 @@ func (pd *PeerDriver) handleRecords(encrypted_records []*EncryptedRecord) {
 		// }
 	}
 }
+
+//
