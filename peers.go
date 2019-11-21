@@ -367,12 +367,10 @@ func (pd *PeerDriver) handleRecords(encrypted_records []*EncryptedRecord) {
 			p := Patient{PatientKey: string(rec.PatientID), Records: records_temp, Node: "hc_1"}
 			AddPatient(p)
 		} else {
+			log.Println("found patient!!!!!!!")
 
-			found := true
 			for _, record := range p.Records {
-				if found {
-
-				}
+				fmt.Println("this is a record in patient")
 				fmt.Println("record is " + string(record.Message))
 				fmt.Println("encrypted record is " + string(rec.Contents))
 				// found = false
