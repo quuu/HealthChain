@@ -380,8 +380,9 @@ func (pd *PeerDriver) handleRecords(encrypted_records []*EncryptedRecord) {
 				}
 			}
 			if !found {
+				temp := &EncryptedRecord{PatientID: rec.PatientID, Contents: rec.Contents}
 				fmt.Println("storing new record---")
-				err := db.Save(&rec)
+				err := db.Save(temp)
 				if err != nil {
 					panic(err)
 				}
