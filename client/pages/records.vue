@@ -10,40 +10,45 @@
                         <p class="title is-3 has-text-centered">Health Records Request</p>
                         <div class="columns"> 
                           <div class="field column">
-                            <label class="label">First Name</label>
+                            <b-field label="First Name"
+                              label-position="on-border">
                             <div class="control">
                               <input class="input" type="text" v-model="firstname" placeholder="John">
-                            </div>
+                            </div></b-field>
                           </div>
                           <div class="field column">
-                            <label class="label">Last Name</label>
+                            <b-field label="Last Name"
+                              label-position="on-border">
                             <div class="control">
                               <input class="input" type="text" v-model="lastname" placeholder="Doe">
-                            </div>
+                            </div></b-field>
                           </div>
                         </div>
                         <div class = "columns">
                           <div class="field column">
                             <p class="control has-icons-left">
                               <span class="select">
-                                <select v-model="country">
-                                  <option value="" selected>Country</option>
+                                <b-field label="Country"
+                                  label-position="on-border">
+                                <b-select v-model="country" placeholder="Country">
                                   <option value ="USA">United States (USA)</option>
                                   <option value="GBR">United Kingdom (GBR)</option>
                                   <option value="DEU">Germany (DEU)</option>
-                                </select>
+                                </b-select></b-field>
                               </span>
                               <span class="icon is-small is-left">
-                                <i class="fas fa-globe"></i>
+                                <font-awesome-icon :icon="['fas', 'globe']"/>
                               </span>
                             </p>
                           </div>
                           <div class="field column">
                               <p class="control has-icons-left">
+                                  <b-field label="Code"
+                                    label-position="on-border">
                                   <input class="input" type="password" v-model="code" placeholder="Code">
                                   <span class="icon is-small is-left">
-                                    <i class="fas fa-lock"></i>
-                                  </span>
+                                    <font-awesome-icon :icon="['fas', 'lock']"/>
+                                  </span></b-field>
                                 </p>
                           </div>
                           <div class="field column">
@@ -69,7 +74,31 @@
     
     <section class="container" v-if="!showForm">
       <h2 class="title is-2">Health Info for  {{firstname + " " + lastname}}: </h2>
-     
+      
+      
+      <b-field class ="field columns">
+        <div class="column"><b-button type="is-danger" @click="resetForm"><font-awesome-icon :icon="['fas', 'arrow-left']"/> Go Back</b-button></div>
+        
+        <b-field class="column is-7" grouped>
+          
+        <b-field label="Search..." label-position="on-border">
+            <b-input placeholder="Search..." type="search"></b-input>
+            <p class="control">
+                <b-button class="button is-danger">Search</b-button>
+            </p>
+        </b-field>
+        <b-field label="Sort By:"
+            label-position="on-border">
+            <b-select placeholder="Sort Method...">
+                <option value="1">Date (Newest First)</option>
+                <option value="2">Date (Oldest First)</option>
+            </b-select>
+        </b-field>
+        </b-field>
+
+      </b-field>
+        
+      
       <appointment 
         v-for="data in healthData" 
         :key="data.ID"
@@ -163,7 +192,15 @@ export default {
     openLoading() {
         this.isLoading = true
         
-      }
+    },
+    resetForm(){
+      this.showForm = true;
+      this.healthData = [];
+      this.firstname = null;
+      this.lastname = null;
+      this.country = null;
+      this.code = null;
+    }
   }
 
   

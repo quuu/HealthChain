@@ -200,6 +200,12 @@ func (pd *PeerDriver) Discovery() {
 	}
 }
 
+/*
+
+@returns: nothing
+@params: entry
+
+*/
 func (pd *PeerDriver) handleGlobalEntry(entry *Peer) {
 
 	// ignore if self
@@ -274,7 +280,6 @@ func (pd *PeerDriver) handleEntry(entry *zeroconf.ServiceEntry) {
 }
 
 // function responsible for asking peers for records
-// TODO
 // only fetch on a need to use basis
 // currently set to fetch every 1 second when theres no new entries
 func (pd *PeerDriver) fetchRecords() {

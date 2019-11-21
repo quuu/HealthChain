@@ -22,4 +22,5 @@ require (
 	github.com/urfave/cli v1.22.1 // indirect
 	golang.org/x/net v0.0.0-20190916140828-c8589233b77d // indirect
 	golang.org/x/sys v0.0.0-20191026070338-33540a1f6037 // indirect
+	golang.org/x/tools v0.0.0-20191121172411-96ad48e4b060 // indirect
 )

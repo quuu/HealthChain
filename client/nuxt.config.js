@@ -42,7 +42,16 @@ module.exports = {
     'nuxt-buefy',
     '@nuxtjs/axios',
     '@nuxtjs/proxy',
-    'nuxt-fontawesome'
+    [
+      'nuxt-fontawesome', {
+        imports: [
+         {
+           set: '@fortawesome/free-solid-svg-icons',
+           icons: ['fas']
+         }
+       ]
+      }
+    ]
   ],
 
   axios: {

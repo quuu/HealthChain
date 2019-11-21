@@ -11,42 +11,45 @@
                         <p class="title is-3 has-text-centered">Health Record Submission</p>
                         <div class="columns"> 
                           <div class="field column">
-                            <label class="label">First Name</label>
+                            <b-field label="First Name"
+                              label-position="on-border">
                             <div class="control">
                               <input class="input" type="text" v-model="firstname" placeholder="John">
-                            </div>
+                            </div></b-field>
                           </div>
                           <div class="field column">
-                            <label class="label">Last Name</label>
+                            <b-field label="First Name"
+                              label-position="on-border">
                             <div class="control">
                               <input class="input" type="text" v-model="lastname" placeholder="Doe">
-                            </div>
+                            </div></b-field>
                           </div>
                         </div>
                         <div class = "columns">
                           <div class="field column">
-                            <label class="label">Country</label>
                             <p class="control has-icons-left">
                               <span class="select">
-                                <select v-model="country">
-                                  <option value="" selected>Country</option>
+                                <b-field label="Country"
+                              label-position="on-border">
+                                <b-select v-model="country" placeholder="Country">
                                   <option value ="USA">United States (USA)</option>
                                   <option value="GBR">United Kingdom (GBR)</option>
                                   <option value="DEU">Germany (DEU)</option>
-                                </select>
+                                </b-select></b-field>
                               </span>
                               <span class="icon is-small is-left">
-                                <i class="fas fa-globe"></i>
+                                <font-awesome-icon :icon="['fas', 'globe']"/>
                               </span>
                             </p>
                              </div>
                             <div class="field column">
-                              <label class="label">Unique Code</label>
                               <p class="control has-icons-left">
+                                <b-field label="Code"
+                              label-position="on-border">
                                   <input class="input" type="password" v-model="code" placeholder="Code">
                                   <span class="icon is-small is-left">
-                                    <i class="fas fa-lock"></i>
-                                  </span>
+                                    <font-awesome-icon :icon="['fas', 'lock']"/>
+                                  </span></b-field>
                                 </p>
                           </div>
 
