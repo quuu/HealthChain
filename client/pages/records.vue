@@ -69,7 +69,7 @@
     
     <section class="container" v-if="!showForm">
       <h2 class="title is-2">Health Info for  {{firstname + " " + lastname}}: </h2>
-
+     
       <appointment 
         v-for="data in healthData" 
         :key="data.ID"

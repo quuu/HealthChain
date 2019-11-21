@@ -190,7 +190,9 @@ export default {
         self.lastname = null;
         self.country = null; 
         self.code = null;
-        self.message = null;
+        self.message = {};
+        self.summary = "";
+        self.fields = [];
 
       
       });
