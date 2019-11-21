@@ -87,9 +87,12 @@ func (a *API) GetRecords(w http.ResponseWriter, r *http.Request) {
 	hash_key := GetHash(first, last, country, code)
 
 	patient := &Patient{}
-	patient = GetPatient(string(hash_key))
+	// fmt.Println("the hash key is --")
+	// fmt.Println(string(hash_key))
+	patient = GetPatient(hash_key)
+
 	if patient == nil {
-		log.Println("No records for this patient")
+		log.Printf("No records for this patient % x\n", hash_key)
 		return
 	}
 	log.Println("Found patient", patient)
@@ -108,6 +111,9 @@ func (a *API) GetRecords(w http.ResponseWriter, r *http.Request) {
 
 	var records []Record
 	records = patient.Records
+
+	fmt.Println("these are records")
+	fmt.Println(records)
 
 	var decrypted_records []string
 
@@ -162,6 +168,8 @@ func (a *API) StoreRecord(w http.ResponseWriter, r *http.Request) {
 
 	// get the hash of the user
 	hash_key := GetHash(first, last, country, code)
+	// fmt.Println("stored record has=-=-=-=-")
+	// fmt.Println(string(hash_key))
 
 	//get the messaage
 	apt_encrypt := Encrypt(hash_key, output)
@@ -169,7 +177,7 @@ func (a *API) StoreRecord(w http.ResponseWriter, r *http.Request) {
 	// apt_json_encyp := Encrypt(hash_key, apt_json)
 
 	//rec_tostore := Record{ID: string(hash_key), Message: apt_json_encyp, Date: time.Now()}
-	rec_to_store := Record{ID: string(hash_key), Message: apt_encrypt, Date: time.Now(), Type: "Message"}
+	rec_to_store := Record{ID: hash_key, Message: apt_encrypt, Date: time.Now(), Type: "Message"}
 
 	// REVIEW: whats wrong with the record having a rand gen uuid?
 	//		the records are encapsulated within patient data
@@ -177,24 +185,36 @@ func (a *API) StoreRecord(w http.ResponseWriter, r *http.Request) {
 	// gets patient if already present else makes a new patient to store
 	p := &Patient{}
 	var records_temp []Record
-	p = GetPatient(string(hash_key)) // NOTE this is a patch, method should take a []byte
+	p = GetPatient(hash_key) // NOTE this is a patch, method should take a []byte
 	if p == nil {
 		log.Println("Patient does not exsist, making new patient")
-		p := Patient{PatientKey: string(hash_key), Records: records_temp, Node: "hc_1"}
+		p := Patient{PatientKey: hash_key, Records: records_temp, Node: "hc_1"}
 		AddPatient(p)
 	}
 
+	enc := &EncryptedRecord{PatientID: hash_key, Contents: rec_to_store.Message}
+	fmt.Println("inside of encrypted message")
 	peer_db := PublicDB()
-	defer peer_db.Close()
-
-	enc := &EncryptedRecord{PatientID: string(hash_key), Contents: rec_to_store.Message}
+	// peer database usage
 	err = peer_db.Save(enc)
 	if err != nil {
 		panic(err)
 	}
 
+	// var records []EncryptedRecord
+
+	// err = peer_db.All(&records)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// for _, record := range records {
+	// 	fmt.Println(record.PatientID)
+	// }
+
+	peer_db.Close()
+
 	// actually save it into the database
-	p.AddRecord(string(hash_key), rec_to_store)
+	p.AddRecord(hash_key, rec_to_store)
 	w.Write([]byte("Saved!"))
 }
 
@@ -202,6 +222,7 @@ func (a *API) StoreRecord(w http.ResponseWriter, r *http.Request) {
 // a hashed encoding and a stream of bytes to encode
 func Encrypt(encoding []byte, data []byte) []byte {
 	block, _ := aes.NewCipher(encoding)
+	// b := base64.StdEncoding.EncodeToString((data))
 	gcm, err := cipher.NewGCM(block)
 	if err != nil {
 		panic(err.Error())
@@ -242,7 +263,7 @@ func GetHash(first string, last string, country string, code string) []byte {
 	hasher := sha256.New()
 	hasher.Write([]byte(first + last + country + code))
 
-	log.Println("made the hash " + string(hasher.Sum(nil)))
+	// log.Println("made the hash " + string(hasher.Sum(nil)))
 	return hasher.Sum(nil)
 }
 
@@ -310,7 +331,7 @@ func PublicDB() *storm.DB {
 	return db
 }
 
-func GetPatient(key string) *Patient {
+func GetPatient(key []byte) *Patient {
 	db := GetDB()
 	defer db.Close()
 
@@ -339,7 +360,7 @@ func AddPatient(patient Patient) map[string]interface{} {
 
 }
 
-func (patient *Patient) AddRecord(key string, record Record) map[string]interface{} {
+func (patient *Patient) AddRecord(key []byte, record Record) map[string]interface{} {
 	db := GetDB()
 	defer db.Close()
 

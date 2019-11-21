@@ -41,7 +41,7 @@ type Peer struct {
 func (pd *PeerDriver) recordHandler(w http.ResponseWriter, r *http.Request) {
 
 	// host all the
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json;")
 	var records []*EncryptedRecord
 	db := PublicDB()
 	defer db.Close()
@@ -359,16 +359,17 @@ func (pd *PeerDriver) handleRecords(encrypted_records []*EncryptedRecord) {
 		var records_temp []Record
 		log.Println("looking at fetched records now")
 		p := &Patient{}
-		p = GetPatient(string(rec.PatientID))
+		p = GetPatient(rec.PatientID)
 
 		// if the patient doesn't exist
 		if p == nil {
 			log.Println("Patient does not exist, making new patient")
-			p := Patient{PatientKey: string(rec.PatientID), Records: records_temp, Node: "hc_1"}
+			p := Patient{PatientKey: rec.PatientID, Records: records_temp, Node: "hc_1"}
 			AddPatient(p)
 		} else {
 			// if the patient does exist
-			log.Println("found patient!!!!!!!")
+			log.Printf("found patient!!!!!!! with has % x\n ", rec.PatientID)
+			log.Printf("the has is stored like %s\n", rec.PatientID)
 
 			found := false
 			// go through all the records
@@ -381,14 +382,13 @@ func (pd *PeerDriver) handleRecords(encrypted_records []*EncryptedRecord) {
 					found = true
 				}
 			}
-
-			// if the record doesn't currently exist in the patient
+			// in the patient
 			if !found {
 
 				// locally save this record
 				temp := &EncryptedRecord{PatientID: rec.PatientID, Contents: rec.Contents}
 				fmt.Println("storing new record---")
-				fmt.Println(p.Records)
+				// fmt.Println(p.Records)
 
 				// add to discoverable database
 				// pd.m.Lock()
@@ -401,16 +401,23 @@ func (pd *PeerDriver) handleRecords(encrypted_records []*EncryptedRecord) {
 				// pd.m.Unlock()
 
 				// create record to append to user
-				rec_to_store := Record{ID: string(rec.PatientID), Message: rec.Contents, Date: time.Now(), Type: "Message"}
-				p.AddRecord(string(rec.PatientID), rec_to_store)
+				rec_to_store := Record{ID: rec.PatientID, Message: rec.Contents, Date: time.Now(), Type: "Message"}
+				// pd.m.Lock()
+				ret := p.AddRecord(p.PatientKey, rec_to_store)
+				for key, value := range ret {
+					fmt.Println("Key:", key, "Value:", value)
+				}
+				// pd.m.Unlock()
 				fmt.Println("this is after a save")
 				fmt.Println(p.Records)
 
 			}
 
-			// otherwise, check the records and make sure it's not a duplicate
-
 		}
+
+		// if the record doesn't currently exist
+
+		// otherwise, check the records and make sure it's not a duplicate
 
 		// err := db.Save(rec)
 		// if err != nil {
