@@ -8,3 +8,4 @@ node_modules/
 .nuxt/
 client/.nuxt/
 *.db
+client/package-lock.json
