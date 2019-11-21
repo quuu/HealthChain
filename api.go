@@ -46,20 +46,6 @@ func (a *API) PeersHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(b)
 }
 
-// gets all encrypted records
-func (a *API) FetchEncrypted() []*EncryptedRecord {
-	db := GetDB()
-	defer db.Close()
-	var encrypted []*EncryptedRecord
-	err := db.All(&encrypted)
-
-	if err != nil {
-		panic(err.Error())
-	}
-
-	return encrypted
-}
-
 // handler to get all encrypted records currently being stored
 func (a *API) AllRecordsHandler(w http.ResponseWriter, r *http.Request) {
 	db := GetDB()

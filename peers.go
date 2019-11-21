@@ -55,25 +55,6 @@ func (pd *PeerDriver) recordHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(b)
 }
 
-func (pd *PeerDriver) peerHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
-	// create a new encoder
-	enc := json.NewEncoder(w)
-
-	// make sure no one else is editing the peers while this happens
-	pd.m.Lock()
-	defer pd.m.Unlock()
-
-	// encode the peers to the response writer
-	if err := enc.Encode(pd.peers); err != nil {
-		http.Error(w, "unable to encode peers", http.StatusInternalServerError)
-		log.WithError(err).Error("unable to encode peers")
-		return
-	}
-
-}
-
 // Create a PeerDriver object
 func CreatePeerDriver() *PeerDriver {
 	pd := &PeerDriver{
@@ -88,7 +69,6 @@ func (pd *PeerDriver) Discovery() {
 	// initialize all the endpoints to serve publicly
 	r := chi.NewRouter()
 	r.Get("/records", pd.recordHandler)
-	r.Get("/peers", pd.peerHandler)
 
 	listener, err := net.Listen("tcp", ":0")
 	if err != nil {
