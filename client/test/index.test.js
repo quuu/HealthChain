@@ -19,10 +19,23 @@ test.before(async () => {
 }, 30000)
 
 // Example of testing only generated html
-test('Route / exits and render HTML', async (t) => {
+test('Route / exists and render HTML', async (t) => {
   const context = {}
   const { html } = await nuxt.server.renderRoute('/', context)
   t.true(html.includes('<h1 class="title">Welcome to HealthChain!</h1>'))
+})
+
+test('Route /records exists and render HTML', async (t) => {
+  const context = {}
+  const { html } = await nuxt.server.renderRoute('/records', context)
+  t.true(html.includes('<p class="title is-3 has-text-centered">Health Records Request</p>'))
+})
+
+
+test('Route /uploads exits and render HTML', async (t) => {
+  const context = {}
+  const { html } = await nuxt.server.renderRoute('/uploads', context)
+  t.true(html.includes('<p class="title is-3 has-text-centered">Health Record Submission</p>'))
 })
 
 // Example of testing via dom checking

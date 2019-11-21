@@ -18,7 +18,7 @@
                             </div></b-field>
                           </div>
                           <div class="field column">
-                            <b-field label="First Name"
+                            <b-field label="Last Name"
                               label-position="on-border">
                             <div class="control">
                               <input class="input" type="text" v-model="lastname" placeholder="Doe">
