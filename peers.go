@@ -353,8 +353,8 @@ func (pd *PeerDriver) fetchRecords() {
 // 	and save each into storm
 func (pd *PeerDriver) handleRecords(encrypted_records []*EncryptedRecord) {
 
-	db := GetDB()
-	defer db.Close()
+	// db := GetDB()
+	// defer db.Close()
 	var records_temp []Record
 	for _, rec := range encrypted_records {
 
