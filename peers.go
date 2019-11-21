@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net"
 	"net/http"
 	"net/url"
@@ -12,7 +13,6 @@ import (
 
 	"strconv"
 
-	"github.com/asdine/storm/v3"
 	"github.com/go-chi/chi"
 	"github.com/grandcat/zeroconf"
 	uuid "github.com/satori/go.uuid"
@@ -26,7 +26,6 @@ type PeerDriver struct {
 	me    *Peer
 	peers map[string]*Peer
 	api   *API
-	store *storm.DB
 }
 
 // Peer is a helper struct to store information about the peer
@@ -37,14 +36,17 @@ type Peer struct {
 }
 
 // function that handles displaying all the messages
-// TODO
+// TODO - NOTE -> this method should be fine for get/set
 // integrate with the storage
 func (pd *PeerDriver) recordHandler(w http.ResponseWriter, r *http.Request) {
 
 	// host all the
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json;")
 	var records []*EncryptedRecord
-	err := pd.store.All(&records)
+	db := PublicDB()
+	defer db.Close()
+	err := db.All(&records)
+	fmt.Println(records)
 	b, err := json.MarshalIndent(records, "", " ")
 	if err != nil {
 		panic(err.Error())
@@ -73,11 +75,10 @@ func (pd *PeerDriver) peerHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // Create a PeerDriver object
-func CreatePeerDriver(store *storm.DB) *PeerDriver {
+func CreatePeerDriver() *PeerDriver {
 	pd := &PeerDriver{
 		m:     &sync.Mutex{},
 		peers: map[string]*Peer{},
-		store: store,
 	}
 	return pd
 }
@@ -352,11 +353,54 @@ func (pd *PeerDriver) fetchRecords() {
 // 	and save each into storm
 func (pd *PeerDriver) handleRecords(encrypted_records []*EncryptedRecord) {
 
+	// for all encrypted records just fetched
 	for _, rec := range encrypted_records {
 
-		err := pd.store.Save(rec)
-		if err != nil {
-			panic(err.Error())
+		var records_temp []Record
+		p := &Patient{}
+		p = GetPatient(rec.PatientID)
+
+		// if the patient doesn't exist
+		if p == nil {
+			log.Println("Patient does not exist, making new patient")
+			p := Patient{PatientKey: rec.PatientID, Records: records_temp, Node: "hc_1"}
+			AddPatient(p)
+		} else {
+
+			// if the patient does exist
+			found := false
+			// go through all the records
+			for _, record := range p.Records {
+
+				// found the fetched record inside of Patient p
+				if string(record.Message) == string(rec.Contents) {
+					found = true
+				}
+			}
+			// in the patient
+			if !found {
+
+				// locally save this record
+				temp := &EncryptedRecord{PatientID: rec.PatientID, Contents: rec.Contents}
+
+				// add to discoverable database
+				db := PublicDB()
+				err := db.Save(temp)
+				if err != nil {
+					panic(err)
+				}
+				db.Close()
+
+				// create record to append to user
+				rec_to_store := Record{ID: rec.PatientID, Message: rec.Contents, Date: time.Now(), Type: "Message"}
+				_ = p.AddRecord(p.PatientKey, rec_to_store)
+				fmt.Println("this is after a save")
+				fmt.Println(p.Records)
+
+			}
+
 		}
 	}
 }
+
+//

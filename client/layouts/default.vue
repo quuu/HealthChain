@@ -56,7 +56,7 @@ a {
 }
 
 .navbar-item img {
-    max-height: 3rem;
+    max-height: 2rem;
 }
 
 .color_1{
@@ -91,6 +91,11 @@ a {
 .input:active, .input:focus, .is-active.input, .is-active.textarea, .is-focused.input, .is-focused.textarea, .select select.is-active, .select select.is-focused, .select select:active, .select select:focus, .taginput .is-active.taginput-container.is-focusable, .taginput .is-focused.taginput-container.is-focusable, .taginput .taginput-container.is-focusable:active, .taginput .taginput-container.is-focusable:focus, .textarea:active, .textarea:focus {
     border-color:  #E80000;  
     box-shadow: 0 0 0 0.125em  rgb(232,0,0,.25);
+}
+
+.button:focus, .button.is-focused{
+  border-color: #E80000;
+  box-shadow: 0 0 0 0.125em rgb(232,0,0,.25);
 }
 </style>
 

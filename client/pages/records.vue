@@ -47,16 +47,16 @@
                                 </p>
                           </div>
                           <div class="field column">
-                            <button class="button is-pulled-right" >
-                              Clear Form
-                            </button>
-                          </div>
-                          <div class="field column">
                               <button class="button is-danger" @click.prevent=" () => {
                                 getHealthData()
                                 }" >
                                   Request Records
                               </button>
+                          </div>
+                          <div class="field column">
+                            <button class="button is-pulled-right" >
+                              Clear Form
+                            </button>
                           </div>
                         </div>
                       <b-loading :is-full-page="false" :active.sync="isLoading" :can-cancel="true">
@@ -69,12 +69,12 @@
     
     <section class="container" v-if="!showForm">
       <h2 class="title is-2">Health Info for  {{firstname + " " + lastname}}: </h2>
-
+     
       <appointment 
         v-for="data in healthData" 
         :key="data.ID"
         :date="data.Date"
-        :message="data.Message"
+        :appt_info="data"
       />
     </section>
 
@@ -86,7 +86,7 @@
 
 <script>
 import axios from 'axios';
-  
+import { NotificationProgrammatic as Notification } from 'buefy'
 import appointment from '@/components/appointment'
 function custom_sort(a, b) {
     return new Date(b.Date).getTime() - new Date(a.Date).getTime();
@@ -140,19 +140,29 @@ export default {
       }).then(function(response){
         //this.showForm =false;        
         console.log(response.data);
-        self.healthData = JSON.parse(JSON.stringify(response.data));
-        self.healthData = self.healthData.map(JSON.parse)
-        self.healthData.sort(custom_sort)
-        console.log(self.healthData)
-        self.showForm = false;
-      
+        if(response.data == null){
+          Notification.open({
+                    duration: 5000,
+                    message: `Error: No records available for this person`,
+                    position: 'is-bottom-right',
+                    type: 'is-danger',
+                    hasIcon: true
+                })
+           self.isLoading = false;     
+        }else{
+          self.healthData = JSON.parse(JSON.stringify(response.data));
+          self.healthData = self.healthData.map(JSON.parse);
+          self.healthData.sort(custom_sort);
+          self.isLoading = false;
+        
+          console.log(self.healthData);
+          self.showForm = false;
+        }
       });
     },
     openLoading() {
         this.isLoading = true
-        setTimeout(() => {
-          this.isLoading = false
-        }, 10 * 1000)
+        
       }
   }
 

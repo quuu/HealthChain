@@ -55,22 +55,39 @@
                           <div class="field column"></div>
                           
                           
+                        </div>
+                        <div class="columns">
                           <div class="field column">
+                            Appointment Information:
+                            
+                            <b-input class="control" type="textarea" placeholder="Summary" v-model="summary"></b-input>
+
+                            <div class="control">
+                              Fields:
+                                <b-field v-for="(field, index) in fields" :key="field.id">
+                                 <div class="columns"> 
+                                  <formField 
+                                   :id="field.id"
+                                   @inputData= "inputData"/>
+                                  <b-button type="is-danger" icon-right="delete" @click="fields.splice(index, 1)" />
+                                  </div>
+                               </b-field>
+
+                            </div>
+                          </div>
+                          
+                        </div>
+                        <b-button rounded @click="addField(numFields++)">
+                            Add Field
+                          </b-button>
+
+                      <div class="field column is-pulled-right">
                               <button class="button is-danger" @click.prevent=" () => {
                                 postHealthData()
                                 }" >
                                   Upload Records 
                               </button>
                           </div>
-                        </div>
-                        <div class="columns">
-                          <div class="field column">
-                            Appointment Information:
-                            <div class="control">
-                                <textarea class="textarea is-danger" placeholder="e.g. Routine Checkup" v-model="message"></textarea>
-                              </div>
-                          </div>
-                        </div>
                       <b-loading :is-full-page="false" :active.sync="isLoading" :can-cancel="true">
                       </b-loading>
                     </form>
@@ -84,25 +101,29 @@
 <script>
 
 import axios from 'axios';
+import formField from '@/components/formField'
+import { NotificationProgrammatic as Notification } from 'buefy'
 export default {
-
+  components:{
+    formField
+  },
   data() {
     return {
       firstname: null,
       lastname: null,
       country: null,
       code: null,
-      message: null,
-      isLoading: false
+      message: {},
+      isLoading: false,
+      numFields:0,
+      fields: [],
+      summary: null
     
     };
   },
   methods:{
     openLoading() {
         this.isLoading = true
-        setTimeout(() => {
-          this.isLoading = false
-        }, 10 * 1000)
     },
     loadData(){
       let form = new FormData()
@@ -110,14 +131,34 @@ export default {
       form.append("last", this.lastname)
       form.append("country", this.country)
       form.append("code", this.code)
-      form.append("appointment_info", this.message)
-
+      this.message["summary"]=this.summary;
+      var self=this;
+      this.fields.forEach(function(data, index){
+        self.message[data.field]= data.value;
+      });
+      form.append("appointment_info", this.message);
       return form
     },
+    loadData2(){
+      this.message["summary"]=this.summary;
+      var self=this;
+      this.fields.forEach(function(data, index){
+        self.message[data.field]= data.value;
+      });
+      return  {
+        "first": this.firstname,
+        "last": this.lastname,
+        "country": this.country,
+        "code": this.code,
+        "appointment_info": this.message
 
+      }
+    },
+    
     async postHealthData(){
       this.openLoading();
       let self =this;
+      console.log(this.loadData2());
       await axios({
         method: 'post',
         url: '/api/new_record',
@@ -125,7 +166,7 @@ export default {
         headers: { 'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,OPTIONS',
         'Content-Type': 'multipart/form-data'},
-        data: this.loadData()
+        data: this.loadData2()
         // {
         //   first: this.firstname,
         //   last: this.lastname,
@@ -135,11 +176,47 @@ export default {
       }).then(function(response){
         //this.showForm =false;        
         console.log(response);
-        
+        if(response.data == "Saved!"){
+          Notification.open({
+                    duration: 5000,
+                    message: `Record for `+ self.firstname + ` uploaded successfully!`,
+                    position: 'is-bottom-right',
+                    type: 'is-success',
+                    hasIcon: true
+                })
+        }
+        self.isLoading = false;
+        self.firstname = null;
+        self.lastname = null;
+        self.country = null; 
+        self.code = null;
+        self.message = {};
+        self.summary = "";
+        self.fields = [];
+
       
       });
+    },
+    addField(ID){
+      this.fields.push({id: ID});
+      
+    },
+    inputData(data){
+      var i;
+      this.fields.forEach(function(field, index){
+        if(data.id == field.id){
+          i = index;
+        }
+      });
+      if(data.field != null){
+        this.fields[i].field = data.field;
+        this.fields[i].value = data.value;
+      }
+      
     }
   }
+
+  
   
 }
 </script>
