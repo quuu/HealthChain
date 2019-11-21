@@ -354,8 +354,11 @@ func (pd *PeerDriver) fetchRecords() {
 func (pd *PeerDriver) handleRecords(encrypted_records []*EncryptedRecord) {
 
 	var records_temp []Record
+
+	// for all encrypted records just fetched
 	for _, rec := range encrypted_records {
 
+		log.Println("looking at fetched records now")
 		p := &Patient{}
 		p = GetPatient(string(rec.PatientID))
 
@@ -365,19 +368,25 @@ func (pd *PeerDriver) handleRecords(encrypted_records []*EncryptedRecord) {
 			p := Patient{PatientKey: string(rec.PatientID), Records: records_temp, Node: "hc_1"}
 			AddPatient(p)
 		} else {
+			// if the patient does exist
 			log.Println("found patient!!!!!!!")
 
-			// go through all the cords
-
 			found := false
+			// go through all the records
 			for _, record := range p.Records {
 				fmt.Println("this is a record in patient")
+
+				// found the fetched record inside of Patient p
 				if string(record.Message) == string(rec.Contents) {
 					fmt.Println("found record")
 					found = true
 				}
 			}
+
+			// if the record doesn't currently exist in the patient
 			if !found {
+
+				// locally save this record
 				temp := &EncryptedRecord{PatientID: rec.PatientID, Contents: rec.Contents}
 				fmt.Println("storing new record---")
 				db := PublicDB()
