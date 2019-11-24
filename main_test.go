@@ -1,10 +1,13 @@
 package main
 
 import (
+	"context"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/asdine/storm/v3"
+	"github.com/grandcat/zeroconf"
 )
 
 func TestGetHash(t *testing.T) {
@@ -71,10 +74,41 @@ func TestDatabaseOperations(t *testing.T) {
 }
 
 func TestPeerDiscovery(t *testing.T) {
+	server, err := zeroconf.Register("TestingZeroconf", "_healthchain._tcp", "local.", 4000, nil, nil)
 
+	if err != nil {
+
+		t.Errorf("Failed to register service\n")
+	}
+	defer server.Shutdown()
+
+	resolver, err := zeroconf.NewResolver(nil)
+	if err != nil {
+		t.Errorf("Failed to create resolver\n")
+	}
+	entries := make(chan *zeroconf.ServiceEntry)
+	go func(results <-chan *zeroconf.ServiceEntry) {
+	}(entries)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
+	defer cancel()
+	err = resolver.Browse(ctx, "_workstation._tcp", "local.", entries)
+	if err != nil {
+		t.Errorf("Failed to browse\n")
+	}
+
+	<-ctx.Done()
 }
 
 func TestServiceRegistration(t *testing.T) {
+
+	server, err := zeroconf.Register("TestingZeroconf", "_healthchain._tcp", "local.", 4000, nil, nil)
+
+	if err != nil {
+
+		t.Errorf("failed to register service")
+	}
+	defer server.Shutdown()
 
 }
 
