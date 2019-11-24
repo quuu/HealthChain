@@ -34,8 +34,21 @@ go build .
 
 ```
 
+
+### Testing
+
+In order to run the unit tests:
+
+```
+
+cd HealthChain
+go test -v
+
+```
+
 ### Deployment
 
+TODO:
 Docker container works for running the application, need to expose different ports and allow discovery on host network
 
 ### Contribution
