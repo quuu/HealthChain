@@ -4,11 +4,11 @@ package main
 // Runs discovery procedure to find peers in network and starts webserver
 func main() {
 
-	// use the same database object for the peer driver
+	// start peer discovery in background
 	pd := CreatePeerDriver()
 	go pd.Discovery()
 
-	// as well as the api
+	// create API as the main thread service
 	api := NewAPI(pd.uuid)
 	api.Run()
 

@@ -3,9 +3,10 @@ package main
 import (
 	"time"
 )
+
 // FormData
 // json template for patient record
-// When recading a record.json only reads from fields in struct 
+// When recading a record.json only reads from fields in struct
 type FormData struct {
 	First            string `json:"first"`
 	Last             string `json:"last"`
@@ -23,7 +24,7 @@ type FormData struct {
 }
 
 // Record
-// Encapsulated Record with unique id, date.time 
+// Encapsulated Record with unique id, date.time
 type Record struct {
 	ID      []byte    `json:"ID"`
 	Message []byte    `json:"Message"`
@@ -32,7 +33,7 @@ type Record struct {
 }
 
 // Patient
-// Encapsulated all records associated with PatientKey such that all patientKeys 
+// Encapsulated all records associated with PatientKey such that all patientKeys
 // are unique and is hashed from the patients credentials.
 // patientkey is obtained from encryption hash.
 type Patient struct {
@@ -42,6 +43,7 @@ type Patient struct {
 }
 
 // EncryptedRecord
+// Struct to store in peer database
 type EncryptedRecord struct {
 	Contents  []byte `storm:"id"`
 	PatientID []byte

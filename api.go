@@ -262,7 +262,7 @@ func NewAPI(uuid string) *API {
 	return a
 }
 
-// Rum
+// Run
 // Modifies API router to listen and Server on port :3000
 func (a *API) Run() {
 	// close the store once listening is done
@@ -284,7 +284,8 @@ func Message(status bool, message string) map[string]interface{} {
 }
 
 // GetDB
-// Returns refernece to local db for modification
+// Returns refernece to local db for addition
+// Used internally for fast lookup of records
 func GetDB() *storm.DB {
 	db, err := storm.Open("hc.db")
 	if err != nil {
@@ -294,7 +295,7 @@ func GetDB() *storm.DB {
 }
 
 // PublicDB
-// Returns reference to public db for modification
+// Returns reference to public db for addition
 // Used when records are synced across peers
 func PublicDB() *storm.DB {
 	db, err := storm.Open("records.db")
