@@ -18,7 +18,7 @@ import (
 
 // API
 // me: unique identifier of the node
-// str:
+// str: self name, to be used later
 // r: http.Request handler
 type API struct {
 	me  string
@@ -30,7 +30,7 @@ type API struct {
 // handler for main page routed at index.html
 func (a *API) IndexHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	b, err := json.MarshalIndent("a", "", " ")
+	b, err := json.MarshalIndent("Index", "", " ")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
@@ -38,9 +38,9 @@ func (a *API) IndexHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // PeersHandler
-// handler to find out which peers are currently connected
+// Handler to find out which peers are currently connected
 // PeersHandler is called to check if there are updates to be fetched within the
-// network
+//  network
 func (a *API) PeersHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
