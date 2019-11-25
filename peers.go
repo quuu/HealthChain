@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"net"
 	"net/http"
 	"net/url"
@@ -46,7 +45,6 @@ func (pd *PeerDriver) recordHandler(w http.ResponseWriter, r *http.Request) {
 	db := PublicDB()
 	defer db.Close()
 	err := db.All(&records)
-	fmt.Println(records)
 	b, err := json.MarshalIndent(records, "", " ")
 	if err != nil {
 		panic(err.Error())
@@ -399,11 +397,7 @@ func (pd *PeerDriver) handleRecords(encrypted_records []*EncryptedRecord) {
 				// create record to append to user
 				rec_to_store := Record{ID: rec.PatientID, Message: rec.Contents, Date: time.Now(), Type: "Message"}
 				_ = p.AddRecord(p.PatientKey, rec_to_store)
-				fmt.Println("this is after a save")
-				fmt.Println(p.Records)
-
 			}
-
 		}
 	}
 }
