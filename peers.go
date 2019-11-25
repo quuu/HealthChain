@@ -324,14 +324,14 @@ func (pd *PeerDriver) fetchRecords() {
 			dec := json.NewDecoder(resp.Body)
 
 			// turn the response into encrypted record objects
-			var encrypted_records []*EncryptedRecord
-			err = dec.Decode(&encrypted_records)
+			var encryptedRecords []*EncryptedRecord
+			err = dec.Decode(&encryptedRecords)
 			if err != nil {
 				panic(err.Error())
 			}
 
 			// call function used to store the records that are unique
-			pd.handleRecords(encrypted_records)
+			pd.handleRecords(encryptedRecords)
 
 			log.Println("got records")
 

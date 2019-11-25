@@ -158,25 +158,25 @@ func (a *API) StoreRecord(w http.ResponseWriter, r *http.Request) {
 
 	// gets patient if already present else makes a new patient struct to store
 	p := &Patient{}
-	var records_temp []Record
+	var tempRecords []Record
 	p = GetPatient(hashKey)
 
 	if p == nil {
 		log.Println("Patient does not exsist, making new patient")
-		p := Patient{PatientKey: hashKey, Records: records_temp, Node: "hc_1"}
+		p := Patient{PatientKey: hashKey, Records: tempRecords, Node: "hc_1"}
 		AddPatient(p)
 	}
 
 	enc := &EncryptedRecord{PatientID: hashKey, Contents: recordToStore.Message}
-	peer_db := PublicDB()
+	peerDB := PublicDB()
 
 	// peer database usage
-	err = peer_db.Save(enc)
+	err = peerDB.Save(enc)
 	if err != nil {
 		panic(err)
 	}
 
-	peer_db.Close()
+	peerDB.Close()
 
 	// actually save it into the database
 	p.AddRecord(hashKey, recordToStore)
@@ -196,8 +196,8 @@ func Encrypt(encoding []byte, data []byte) []byte {
 	if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
 		panic(err.Error())
 	}
-	cipher_text := gcm.Seal(nonce, nonce, data, nil)
-	return cipher_text
+	cipherText := gcm.Seal(nonce, nonce, data, nil)
+	return cipherText
 }
 
 // Decrypt
@@ -210,8 +210,8 @@ func Decrypt(encoding []byte, data []byte) []byte {
 		panic(err.Error())
 	}
 	nonceSize := gcm.NonceSize()
-	nonce, cipher_text := data[:nonceSize], data[nonceSize:]
-	plaintext, err := gcm.Open(nil, nonce, cipher_text, nil)
+	nonce, cipherText := data[:nonceSize], data[nonceSize:]
+	plaintext, err := gcm.Open(nil, nonce, cipherText, nil)
 
 	// failed to decrypt, would normally throw an error
 	if err != nil {
