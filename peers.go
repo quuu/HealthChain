@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"net"
 	"net/http"
 	"net/url"
@@ -46,7 +45,6 @@ func (pd *PeerDriver) recordHandler(w http.ResponseWriter, r *http.Request) {
 	db := PublicDB()
 	defer db.Close()
 	err := db.All(&records)
-	fmt.Println(records)
 	b, err := json.MarshalIndent(records, "", " ")
 	if err != nil {
 		panic(err.Error())
@@ -125,9 +123,8 @@ func (pd *PeerDriver) Discovery() {
 		}
 	}()
 
-	log.Printf("started listening at %d", port)
-
 	// now browse for other services
+	log.Printf("started listening at %d", port)
 
 	// will store the new peers discovered
 	entries := make(chan *zeroconf.ServiceEntry)
@@ -154,12 +151,6 @@ func (pd *PeerDriver) Discovery() {
 		ticker := time.Tick(time.Second * 5)
 		for range ticker {
 			pd.m.Lock()
-			/*
-				if pd.me == nil {
-					continue
-				}
-
-			*/
 			b, err := json.Marshal(pd.me)
 			pd.m.Unlock()
 			if err != nil {
@@ -333,14 +324,14 @@ func (pd *PeerDriver) fetchRecords() {
 			dec := json.NewDecoder(resp.Body)
 
 			// turn the response into encrypted record objects
-			var encrypted_records []*EncryptedRecord
-			err = dec.Decode(&encrypted_records)
+			var encryptedRecords []*EncryptedRecord
+			err = dec.Decode(&encryptedRecords)
 			if err != nil {
 				panic(err.Error())
 			}
 
 			// call function used to store the records that are unique
-			pd.handleRecords(encrypted_records)
+			pd.handleRecords(encryptedRecords)
 
 			log.Println("got records")
 
@@ -356,19 +347,19 @@ func (pd *PeerDriver) fetchRecords() {
 
 // function that will loop through an array of records
 // 	and save each into storm
-func (pd *PeerDriver) handleRecords(encrypted_records []*EncryptedRecord) {
+func (pd *PeerDriver) handleRecords(encryptedRecords []*EncryptedRecord) {
 
 	// for all encrypted records just fetched
-	for _, rec := range encrypted_records {
+	for _, rec := range encryptedRecords {
 
-		var records_temp []Record
+		var tempRecords []Record
 		p := &Patient{}
 		p = GetPatient(rec.PatientID)
 
 		// if the patient doesn't exist
 		if p == nil {
 			log.Println("Patient does not exist, making new patient")
-			p := Patient{PatientKey: rec.PatientID, Records: records_temp, Node: "hc_1"}
+			p := Patient{PatientKey: rec.PatientID, Records: tempRecords, Node: "hc_1"}
 			AddPatient(p)
 		} else {
 
@@ -397,13 +388,9 @@ func (pd *PeerDriver) handleRecords(encrypted_records []*EncryptedRecord) {
 				db.Close()
 
 				// create record to append to user
-				rec_to_store := Record{ID: rec.PatientID, Message: rec.Contents, Date: time.Now(), Type: "Message"}
-				_ = p.AddRecord(p.PatientKey, rec_to_store)
-				fmt.Println("this is after a save")
-				fmt.Println(p.Records)
-
+				recordToStore := Record{ID: rec.PatientID, Message: rec.Contents, Date: time.Now(), Type: "Message"}
+				_ = p.AddRecord(p.PatientKey, recordToStore)
 			}
-
 		}
 	}
 }

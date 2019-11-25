@@ -6,7 +6,6 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -18,8 +17,8 @@ import (
 )
 
 // API
-// me: unique identifier of the node 
-// str: 
+// me: unique identifier of the node
+// str: self name, to be used later
 // r: http.Request handler
 type API struct {
 	me  string
@@ -31,17 +30,17 @@ type API struct {
 // handler for main page routed at index.html
 func (a *API) IndexHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	b, err := json.MarshalIndent("a", "", " ")
+	b, err := json.MarshalIndent("Index", "", " ")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 	w.Write(b)
 }
 
-// PeersHandler  
-// handler to find out which peers are currently connected
-// PeersHandler is called to check if there are updates to be fetched within the 
-// network
+// PeersHandler
+// Handler to find out which peers are currently connected
+// PeersHandler is called to check if there are updates to be fetched within the
+//  network
 func (a *API) PeersHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
@@ -51,7 +50,6 @@ func (a *API) PeersHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Write(b)
 }
-
 
 // AllRecordsHandler
 // Writes all encrypted records currently located in the local db to responceWriter
@@ -71,12 +69,11 @@ func (a *API) AllRecordsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(b)
 }
 
-
 // GetRecords
 // Writes/Returns records from patient p
-// Requires p's first/last name, country_code and unique_code (ssn) 
+// Requires p's first/last name, country_code and unique_code (ssn)
 //  and patient existing in the local db.
-// Look up in DB is O(1) 
+// Look up in DB is O(1)
 func (a *API) GetRecords(w http.ResponseWriter, r *http.Request) {
 	r.ParseMultipartForm(0)
 
@@ -85,40 +82,40 @@ func (a *API) GetRecords(w http.ResponseWriter, r *http.Request) {
 	country := r.FormValue("country")
 	code := r.FormValue("code")
 
-	hash_key := GetHash(first, last, country, code)
+	hashKey := GetHash(first, last, country, code)
 
 	patient := &Patient{}
-	patient = GetPatient(hash_key)
+	patient = GetPatient(hashKey)
 
 	// Case where the coressponding patient does not locally exsist.
 	// Returns nil if records are not present.
 	if patient == nil {
-		log.Printf("No records for this patient % x\n", hash_key)
+		log.Printf("No records for this patient % x\n", hashKey)
 		return
-	} else { log.Println("Found patient", patient) }
-	
-
+	} else {
+		log.Println("Found patient", patient)
+	}
 
 	var records []Record
 	records = patient.Records
 
-	var decrypted_records []string
+	var decryptedRecprds []string
 
 	for _, record := range records {
 
 		// decrypt the record
-		decrypted := Decrypt(hash_key, record.Message)
+		decrypted := Decrypt(hashKey, record.Message)
 
 		// add it to the return list
-		decrypted_records = append(decrypted_records, string(decrypted))
+		decryptedRecprds = append(decryptedRecprds, string(decrypted))
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	decryptec_records_bytes, err := json.MarshalIndent(decrypted_records, "", "")
+	decrytpedRecordsJson, err := json.MarshalIndent(decryptedRecprds, "", "")
 	if err != nil {
 		panic(err.Error())
 	}
-	w.Write(decryptec_records_bytes) // returns to ResponseWriter
+	w.Write(decrytpedRecordsJson) // returns to ResponseWriter
 
 }
 
@@ -138,14 +135,13 @@ func (a *API) StoreRecord(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	response.Appointment_Info.Date = time.Now()
+	response.AppointmentInfo.Date = time.Now()
 
 	// get the appointment info
-	output, err := json.Marshal(response.Appointment_Info)
+	output, err := json.Marshal(response.AppointmentInfo)
 	if err != nil {
 
 	}
-	fmt.Println(string(output))
 
 	first := response.First
 	last := response.Last
@@ -153,41 +149,39 @@ func (a *API) StoreRecord(w http.ResponseWriter, r *http.Request) {
 	code := response.Code
 
 	// get the hash of the patient
-	hash_key := GetHash(first, last, country, code)
+	hashKey := GetHash(first, last, country, code)
 
 	// get the messaage
-	apt_encrypt := Encrypt(hash_key, output)
+	encryptedAppointment := Encrypt(hashKey, output)
 
-	rec_to_store := Record{ID: hash_key, Message: apt_encrypt, Date: time.Now(), Type: "Message"}
+	recordToStore := Record{ID: hashKey, Message: encryptedAppointment, Date: time.Now(), Type: "Message"}
 
-	
 	// gets patient if already present else makes a new patient struct to store
 	p := &Patient{}
-	var records_temp []Record
-	p = GetPatient(hash_key) 
+	var tempRecords []Record
+	p = GetPatient(hashKey)
 
 	if p == nil {
 		log.Println("Patient does not exsist, making new patient")
-		p := Patient{PatientKey: hash_key, Records: records_temp, Node: "hc_1"}
+		p := Patient{PatientKey: hashKey, Records: tempRecords, Node: "hc_1"}
 		AddPatient(p)
 	}
 
-	enc := &EncryptedRecord{PatientID: hash_key, Contents: rec_to_store.Message}
-	peer_db := PublicDB()
+	enc := &EncryptedRecord{PatientID: hashKey, Contents: recordToStore.Message}
+	peerDB := PublicDB()
 
 	// peer database usage
-	err = peer_db.Save(enc)
+	err = peerDB.Save(enc)
 	if err != nil {
 		panic(err)
 	}
 
-	peer_db.Close()
+	peerDB.Close()
 
 	// actually save it into the database
-	p.AddRecord(hash_key, rec_to_store)
+	p.AddRecord(hashKey, recordToStore)
 	w.Write([]byte("Saved!")) // success return message to ResponseWriter
 }
-
 
 // Encrypt
 // Return an encrypted record (data) and encrypts it with encoding
@@ -202,8 +196,8 @@ func Encrypt(encoding []byte, data []byte) []byte {
 	if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
 		panic(err.Error())
 	}
-	cipher_text := gcm.Seal(nonce, nonce, data, nil)
-	return cipher_text
+	cipherText := gcm.Seal(nonce, nonce, data, nil)
+	return cipherText
 }
 
 // Decrypt
@@ -216,8 +210,8 @@ func Decrypt(encoding []byte, data []byte) []byte {
 		panic(err.Error())
 	}
 	nonceSize := gcm.NonceSize()
-	nonce, cipher_text := data[:nonceSize], data[nonceSize:]
-	plaintext, err := gcm.Open(nil, nonce, cipher_text, nil)
+	nonce, cipherText := data[:nonceSize], data[nonceSize:]
+	plaintext, err := gcm.Open(nil, nonce, cipherText, nil)
 
 	// failed to decrypt, would normally throw an error
 	if err != nil {
@@ -227,7 +221,7 @@ func Decrypt(encoding []byte, data []byte) []byte {
 }
 
 // GetHash
-// Returns the md5 hash encoding given 4 string parameters that represent patient 
+// Returns the md5 hash encoding given 4 string parameters that represent patient
 //  credientials
 func GetHash(first string, last string, country string, code string) []byte {
 
@@ -236,7 +230,6 @@ func GetHash(first string, last string, country string, code string) []byte {
 	hasher.Write([]byte(first + last + country + code))
 	return hasher.Sum(nil)
 }
-
 
 // NewAPI
 // Returns a API stucct that wraps chi router with function handlers
@@ -269,8 +262,7 @@ func NewAPI(uuid string) *API {
 	return a
 }
 
-
-// Rum
+// Run
 // Modifies API router to listen and Server on port :3000
 func (a *API) Run() {
 	// close the store once listening is done
@@ -284,7 +276,6 @@ func (a *API) Run() {
 
 }
 
-
 // Message
 // json for sending information/logging to  http client
 // Return map[string]interface{} with status and message fields
@@ -293,7 +284,8 @@ func Message(status bool, message string) map[string]interface{} {
 }
 
 // GetDB
-// Returns refernece to local db for modification
+// Returns refernece to local db for addition
+// Used internally for fast lookup of records
 func GetDB() *storm.DB {
 	db, err := storm.Open("hc.db")
 	if err != nil {
@@ -302,9 +294,8 @@ func GetDB() *storm.DB {
 	return db
 }
 
-
 // PublicDB
-// Returns reference to public db for modification
+// Returns reference to public db for addition
 // Used when records are synced across peers
 func PublicDB() *storm.DB {
 	db, err := storm.Open("records.db")
@@ -315,7 +306,7 @@ func PublicDB() *storm.DB {
 }
 
 // GetPatient
-// Returns patient struct of patient that contains encrypted 
+// Returns patient struct of patient that contains encrypted
 //  records associtated with key
 func GetPatient(key []byte) *Patient {
 	db := GetDB()
@@ -349,8 +340,8 @@ func AddPatient(patient Patient) map[string]interface{} {
 }
 
 // AddRecord
-// Modicfies patient and local db, adds record assosciated with patient that is 
-//	returned from key. 
+// Modicfies patient and local db, adds record assosciated with patient that is
+//	returned from key.
 // Requires that patient exsist in local db
 // Returns Message intended to be send to http.client
 func (patient *Patient) AddRecord(key []byte, record Record) map[string]interface{} {
@@ -363,8 +354,8 @@ func (patient *Patient) AddRecord(key []byte, record Record) map[string]interfac
 		return Message(false, err.Error())
 	}
 	patient.Records = append(patient.Records, record)
-	err_set := db.Set("patients", key, &patient)
-	if err_set != nil {
+	err = db.Set("patients", key, &patient)
+	if err != nil {
 		log.Println(err)
 		return Message(false, err.Error())
 	}
