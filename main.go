@@ -1,19 +1,8 @@
 package main
 
-import (
-	"flag"
-	"fmt"
-)
-
-
 // main
 // Runs discovery procedure to find peers in network and starts webserver
 func main() {
-	flag.Parse()
-
-	fmt.Println("Starting discovery")
-
-	// open the database
 
 	// use the same database object for the peer driver
 	pd := CreatePeerDriver()
