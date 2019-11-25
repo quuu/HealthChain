@@ -333,8 +333,6 @@ func (pd *PeerDriver) fetchRecords() {
 			// call function used to store the records that are unique
 			pd.handleRecords(encryptedRecords)
 
-			log.Println("got records")
-
 		}
 		// if nothing found, connection is dead
 		if !retrieved {
@@ -394,5 +392,3 @@ func (pd *PeerDriver) handleRecords(encryptedRecords []*EncryptedRecord) {
 		}
 	}
 }
-
-//
