@@ -5,21 +5,24 @@ import (
 	"os"
 	"testing"
 	"time"
-
+	"bytes"
 	"github.com/asdine/storm/v3"
 	"github.com/grandcat/zeroconf"
 )
 
+// TestGetHash
+// Proves GetHash is deterministic
 func TestGetHash(t *testing.T) {
-	// hash := GetHash("Testing", "Account", "USA", "123")
-	// resultHash := []byte("071cb9c3296810ec371341b0df272044c31c8fec9fb1617ea2d8ae5a56681317")
-
-	// if string(hash) != string(resultHash) {
-
-	// 	t.Errorf("Expected %s\n Got %s\n", resultHash, hash)
-	// }
+	hash_1 := GetHash("Testing", "Account", "USA", "123")
+	hash_2 := GetHash("Testing", "Account", "USA", "123")
+	if !bytes.Equal(hash_1, hash_2) {
+		t.Errorf("Expected %s\n Got %s\n", string(hash_2), string(hash_1))
+	}
 
 }
+
+// TestEncryption
+// Proves that encryption process makes data unreadable 
 func TestEncryption(t *testing.T) {
 
 	hash := GetHash("first", "last", "country", "code")
@@ -33,6 +36,8 @@ func TestEncryption(t *testing.T) {
 	}
 }
 
+// TestDecryption
+// Proves that Decryption returns original data before encryption
 func TestDecryption(t *testing.T) {
 
 	hash := GetHash("first", "last", "country", "code")
@@ -48,6 +53,8 @@ func TestDecryption(t *testing.T) {
 	}
 }
 
+//  TestDatabaseOperations
+// Proves that data can be saves into db succesfully
 func TestDatabaseOperations(t *testing.T) {
 
 	db, err := storm.Open("test.db")
@@ -73,6 +80,8 @@ func TestDatabaseOperations(t *testing.T) {
 
 }
 
+// TestPeerDiscovery
+// Proves that peer discovery finds peers succesfully 
 func TestPeerDiscovery(t *testing.T) {
 	server, err := zeroconf.Register("TestingZeroconf", "_healthchain._tcp", "local.", 4000, nil, nil)
 
@@ -100,18 +109,18 @@ func TestPeerDiscovery(t *testing.T) {
 	<-ctx.Done()
 }
 
+// TestServiceRegistration
+// Proves that  Zeroconf registeres correctly to tcp protocol
 func TestServiceRegistration(t *testing.T) {
 
+	
 	server, err := zeroconf.Register("TestingZeroconf", "_healthchain._tcp", "local.", 4000, nil, nil)
-
+	defer server.Shutdown()
 	if err != nil {
-
 		t.Errorf("failed to register service")
 	}
-	defer server.Shutdown()
+	
 
 }
 
-func TestAPI(t *testing.T) {
 
-}

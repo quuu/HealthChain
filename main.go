@@ -5,6 +5,9 @@ import (
 	"fmt"
 )
 
+
+// main
+// Runs discovery procedure to find peers in network and starts webserver
 func main() {
 	flag.Parse()
 
