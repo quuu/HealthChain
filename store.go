@@ -8,11 +8,11 @@ import (
 // json template for patient record
 // When recading a record.json only reads from fields in struct
 type FormData struct {
-	First            string `json:"first"`
-	Last             string `json:"last"`
-	Country          string `json:"country"`
-	Code             string `json:"code"`
-	Appointment_Info struct {
+	First           string `json:"first"`
+	Last            string `json:"last"`
+	Country         string `json:"country"`
+	Code            string `json:"code"`
+	AppointmentInfo struct {
 		Summary     string `json:"summary"`
 		Height      string `json:"height"`
 		Weight      string `json:"weight"`

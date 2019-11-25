@@ -82,15 +82,15 @@ func (a *API) GetRecords(w http.ResponseWriter, r *http.Request) {
 	country := r.FormValue("country")
 	code := r.FormValue("code")
 
-	hash_key := GetHash(first, last, country, code)
+	hashKey := GetHash(first, last, country, code)
 
 	patient := &Patient{}
-	patient = GetPatient(hash_key)
+	patient = GetPatient(hashKey)
 
 	// Case where the coressponding patient does not locally exsist.
 	// Returns nil if records are not present.
 	if patient == nil {
-		log.Printf("No records for this patient % x\n", hash_key)
+		log.Printf("No records for this patient % x\n", hashKey)
 		return
 	} else {
 		log.Println("Found patient", patient)
@@ -99,23 +99,23 @@ func (a *API) GetRecords(w http.ResponseWriter, r *http.Request) {
 	var records []Record
 	records = patient.Records
 
-	var decrypted_records []string
+	var decryptedRecprds []string
 
 	for _, record := range records {
 
 		// decrypt the record
-		decrypted := Decrypt(hash_key, record.Message)
+		decrypted := Decrypt(hashKey, record.Message)
 
 		// add it to the return list
-		decrypted_records = append(decrypted_records, string(decrypted))
+		decryptedRecprds = append(decryptedRecprds, string(decrypted))
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	decryptec_records_bytes, err := json.MarshalIndent(decrypted_records, "", "")
+	decrytpedRecordsJson, err := json.MarshalIndent(decryptedRecprds, "", "")
 	if err != nil {
 		panic(err.Error())
 	}
-	w.Write(decryptec_records_bytes) // returns to ResponseWriter
+	w.Write(decrytpedRecordsJson) // returns to ResponseWriter
 
 }
 
@@ -135,10 +135,10 @@ func (a *API) StoreRecord(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	response.Appointment_Info.Date = time.Now()
+	response.AppointmentInfo.Date = time.Now()
 
 	// get the appointment info
-	output, err := json.Marshal(response.Appointment_Info)
+	output, err := json.Marshal(response.AppointmentInfo)
 	if err != nil {
 
 	}
@@ -149,25 +149,25 @@ func (a *API) StoreRecord(w http.ResponseWriter, r *http.Request) {
 	code := response.Code
 
 	// get the hash of the patient
-	hash_key := GetHash(first, last, country, code)
+	hashKey := GetHash(first, last, country, code)
 
 	// get the messaage
-	apt_encrypt := Encrypt(hash_key, output)
+	encryptedAppointment := Encrypt(hashKey, output)
 
-	rec_to_store := Record{ID: hash_key, Message: apt_encrypt, Date: time.Now(), Type: "Message"}
+	recordToStore := Record{ID: hashKey, Message: encryptedAppointment, Date: time.Now(), Type: "Message"}
 
 	// gets patient if already present else makes a new patient struct to store
 	p := &Patient{}
 	var records_temp []Record
-	p = GetPatient(hash_key)
+	p = GetPatient(hashKey)
 
 	if p == nil {
 		log.Println("Patient does not exsist, making new patient")
-		p := Patient{PatientKey: hash_key, Records: records_temp, Node: "hc_1"}
+		p := Patient{PatientKey: hashKey, Records: records_temp, Node: "hc_1"}
 		AddPatient(p)
 	}
 
-	enc := &EncryptedRecord{PatientID: hash_key, Contents: rec_to_store.Message}
+	enc := &EncryptedRecord{PatientID: hashKey, Contents: recordToStore.Message}
 	peer_db := PublicDB()
 
 	// peer database usage
@@ -179,7 +179,7 @@ func (a *API) StoreRecord(w http.ResponseWriter, r *http.Request) {
 	peer_db.Close()
 
 	// actually save it into the database
-	p.AddRecord(hash_key, rec_to_store)
+	p.AddRecord(hashKey, recordToStore)
 	w.Write([]byte("Saved!")) // success return message to ResponseWriter
 }
 
@@ -354,8 +354,8 @@ func (patient *Patient) AddRecord(key []byte, record Record) map[string]interfac
 		return Message(false, err.Error())
 	}
 	patient.Records = append(patient.Records, record)
-	err_set := db.Set("patients", key, &patient)
-	if err_set != nil {
+	err = db.Set("patients", key, &patient)
+	if err != nil {
 		log.Println(err)
 		return Message(false, err.Error())
 	}
