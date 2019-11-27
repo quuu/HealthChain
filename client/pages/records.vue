@@ -137,7 +137,7 @@ export default {
       isLoading: false,
       healthData: [],
       displayData: [],
-      searchTerm: "asdf"
+      searchTerm: ""
     };
   },
   
