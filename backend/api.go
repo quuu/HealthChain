@@ -93,7 +93,7 @@ func (a *API) GetRecords(w http.ResponseWriter, r *http.Request) {
 		log.Printf("No records for this patient % x\n", hashKey)
 		return
 	} else {
-		log.Println("Found patient", patient)
+		log.Printf("Found patient% x\n", hashKey)
 	}
 
 	var records []Record
