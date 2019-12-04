@@ -46,10 +46,6 @@ go test -v
 
 ```
 
-### Deployment
-
-TODO:
-Docker container works for running the application, need to expose different ports and allow discovery on host network
 
 ### Contribution
 
