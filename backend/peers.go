@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"os"
 	"sync"
 	"time"
 
@@ -88,7 +89,7 @@ func (pd *PeerDriver) Discovery() {
 	r.Get("/records", pd.recordHandler)
 	r.Get("/peers", pd.peerHandler)
 
-	listener, err := net.Listen("tcp", ":0")
+	listener, err := net.Listen("tcp", ":12345")
 	if err != nil {
 		log.WithError(err).Error("unable to create listener")
 		return
@@ -96,6 +97,8 @@ func (pd *PeerDriver) Discovery() {
 
 	// save the port for registering zeroconf
 	port := listener.Addr().(*net.TCPAddr).Port
+
+	os.Setenv("DISCOVER", string(port))
 
 	// serve the public record
 	log.Debugf("PeerManager listening at %s", listener.Addr())
