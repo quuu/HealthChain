@@ -73,8 +73,14 @@
   
     
     <section class="container" v-if="!showForm">
-      <h2 class="title is-2">Health Info for  {{firstname + " " + lastname}}: </h2>
-      
+      <patientCard
+        :firstname="firstname"
+        :lastname="lastname"
+        :latest_appt="latest_appt"
+        :height="latest_height"
+        :weight="latest_weight"
+        :vaccines="vaccine_list"
+      />
       
       <b-field class ="field columns">
         <div class="column"><b-button type="is-danger" @click="resetForm"><font-awesome-icon :icon="['fas', 'arrow-left']"/> Go Back</b-button></div>
@@ -117,6 +123,7 @@
 import axios from 'axios';
 import { NotificationProgrammatic as Notification } from 'buefy'
 import appointment from '@/components/appointment'
+import patientCard from '@/components/patientCard'
 function newestSort(a, b) {
     return new Date(b.Date).getTime() - new Date(a.Date).getTime();
 }
@@ -125,7 +132,8 @@ function oldestSort(a, b) {
 }
 export default {
   components:{
-    appointment
+    appointment,
+    patientCard
   },
 
   data() {
@@ -140,7 +148,11 @@ export default {
       healthData: [],
       displayData: [],
       searchTerm: "",
-      sortMethod:1
+      sortMethod:1,
+      latest_appt: null,
+      latest_height: null,
+      latest_weight: null,
+      vaccine_list: []
     };
   },
   
@@ -173,7 +185,6 @@ export default {
         // }
       }).then(function(response){
         //this.showForm =false;        
-        console.log(response.data);
         if(response.data == null){
           Notification.open({
                     duration: 5000,
@@ -187,6 +198,8 @@ export default {
           self.healthData = JSON.parse(JSON.stringify(response.data));
           self.healthData = self.healthData.map(JSON.parse);
           self.healthData.sort(newestSort);
+          self.latest_appt = self.healthData[0].Date;
+          self.findLatest();
           self.isLoading = false;
           self.displayData = self.healthData
           self.showForm = false;
@@ -225,6 +238,21 @@ export default {
           this.displayData.sort(oldestSort);
         }
 
+    },
+    findLatest(){
+      self = this;
+      this.healthData.forEach(function(appt){
+        if(appt.height != "" && self.latest_height == null){
+          self.latest_height= appt.height;
+        }
+        if(appt.weight != "" && self.latest_weight == null){
+          self.latest_weight= appt.weight;  
+        }
+        if(appt.vaccination != "" ){
+          self.vaccine_list.push(appt.vaccination);
+        }
+      });
+    
     }
   }
 
