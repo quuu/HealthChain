@@ -3,7 +3,7 @@
 <p align="center">A decentralized health record store with encrypted client records </p>
 
 
-## Purpose 
+# Purpose 
 
 HealthChain is a decentralized health record system. Our aim is to give health professionals rapid and easy access to their patients health records, regardless of location. This is done by assigning a private key to each person in the database, which when entered will unlock access to the patients medical records.
 
@@ -17,37 +17,55 @@ With quick access to these records, the Doctor can more efficiently and rapidly 
 he can recover and enjoy his vacation.
 ```
 
-## Getting Started
- * One server is required to host an endpoint and the web server within the network. 
 
-### Prerequisites
+# Usage 
+
+## Prerequisites
  * Golang 1.12 or later 
  * Node 10.16.0 or later
 
-### Installation    
 
+## Running
+```
+cd HealthChain
 ```
 
-cd HealthChain
+### Backend:
+```
+cd backend
 go build . 
 ./healthchain
+```
 
+### Frontend:
+```
+cd frontend
+npm install
+npm run dev
 ```
 
 
-### Testing
-
-In order to run the unit tests:
+# Testing
 
 ```
-
 cd HealthChain
-go test -v
+```
 
+### Backend unit tests:
+```
+cd backend
+go test -v
+```
+
+### Frontend tests:
+```
+cd frontend
+npm test
 ```
 
 
-### Contribution
+
+# Contribution
 
 ## Authors
 
