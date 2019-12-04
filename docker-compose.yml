@@ -1,0 +1,13 @@
+version: '3'
+
+services: 
+  backend:
+    container_name: backend 
+    build: backend 
+    stdin_open: true
+    tty: true
+    ports:
+      - "3000:3000"
+      - "12345:12345"
+    volumes:
+      - ./backend:/usr/src
