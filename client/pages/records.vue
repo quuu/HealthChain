@@ -82,14 +82,14 @@
         <b-field class="column is-7" grouped>
           
         <b-field label="Search..." label-position="on-border">
-            <b-input placeholder="Search..." type="search"></b-input>
+            <b-input placeholder="Search..." type="search" v-model="searchTerm"></b-input>
             <p class="control">
-                <b-button class="button is-danger">Search</b-button>
+                <b-button class="button is-danger" @click="() => { search() }">Search</b-button>
             </p>
         </b-field>
         <b-field label="Sort By:"
             label-position="on-border">
-            <b-select placeholder="Sort Method...">
+            <b-select v-model="sortMethod" placeholder="Sort Method..." @input="() => {sortData()}">
                 <option value="1">Date (Newest First)</option>
                 <option value="2">Date (Oldest First)</option>
             </b-select>
@@ -100,7 +100,7 @@
         
       
       <appointment 
-        v-for="data in healthData" 
+        v-for="data in displayData" 
         :key="data.ID"
         :date="data.Date"
         :appt_info="data"
@@ -117,10 +117,12 @@
 import axios from 'axios';
 import { NotificationProgrammatic as Notification } from 'buefy'
 import appointment from '@/components/appointment'
-function custom_sort(a, b) {
+function newestSort(a, b) {
     return new Date(b.Date).getTime() - new Date(a.Date).getTime();
 }
-
+function oldestSort(a, b) {
+    return new Date(a.Date).getTime() - new Date(b.Date).getTime();
+}
 export default {
   components:{
     appointment
@@ -135,7 +137,10 @@ export default {
       code: null,
       showForm: true,
       isLoading: false,
-      healthData: []
+      healthData: [],
+      displayData: [],
+      searchTerm: "",
+      sortMethod:1
     };
   },
   
@@ -181,10 +186,9 @@ export default {
         }else{
           self.healthData = JSON.parse(JSON.stringify(response.data));
           self.healthData = self.healthData.map(JSON.parse);
-          self.healthData.sort(custom_sort);
+          self.healthData.sort(newestSort);
           self.isLoading = false;
-        
-          console.log(self.healthData);
+          self.displayData = self.healthData
           self.showForm = false;
         }
       });
@@ -200,6 +204,27 @@ export default {
       this.lastname = null;
       this.country = null;
       this.code = null;
+    },
+    search(){
+      this.displayData = []
+      let re = new RegExp(this.searchTerm)
+      for(let i=0;i<this.healthData.length;i++){
+        let record = JSON.stringify(this.healthData[i])
+        let results = re.exec(record)
+        if(results){
+          this.displayData.push(JSON.parse(results.input))
+        }
+      }
+    },
+    sortData(){
+      console.log("change");
+        if(this.sortMethod == 1){
+          this.displayData.sort(newestSort);
+        }
+        if(this.sortMethod == 2){
+          this.displayData.sort(oldestSort);
+        }
+
     }
   }
 
