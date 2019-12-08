@@ -283,9 +283,18 @@ func Message(status bool, message string) map[string]interface{} {
 	return map[string]interface{}{"status": status, "message": message}
 }
 
+
 // GetDB
 // Returns refernece to local db for addition
 // Used internally for fast lookup of records
+/*
+	DESGIN PATTERN: SINGLETON
+	- Singleton is used for two reasons
+		1. the file location can be abstracted away for clients need to 
+			acess the db s.t. the client does not need to change code
+			 for calling access to the db
+		2. Helps regulate mutex for db - see storm documentation
+*/
 func GetDB() *storm.DB {
 	db, err := storm.Open("hc.db")
 	if err != nil {

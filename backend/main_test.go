@@ -1,13 +1,13 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"github.com/asdine/storm/v3"
+	"github.com/grandcat/zeroconf"
 	"os"
 	"testing"
 	"time"
-	"bytes"
-	"github.com/asdine/storm/v3"
-	"github.com/grandcat/zeroconf"
 )
 
 // TestGetHash
@@ -22,7 +22,7 @@ func TestGetHash(t *testing.T) {
 }
 
 // TestEncryption
-// Proves that encryption process makes data unreadable 
+// Proves that encryption process makes data unreadable
 func TestEncryption(t *testing.T) {
 
 	hash := GetHash("first", "last", "country", "code")
@@ -81,7 +81,7 @@ func TestDatabaseOperations(t *testing.T) {
 }
 
 // TestPeerDiscovery
-// Proves that peer discovery finds peers succesfully 
+// Proves that peer discovery finds peers succesfully
 func TestPeerDiscovery(t *testing.T) {
 	server, err := zeroconf.Register("TestingZeroconf", "_healthchain._tcp", "local.", 4000, nil, nil)
 
@@ -113,14 +113,10 @@ func TestPeerDiscovery(t *testing.T) {
 // Proves that  Zeroconf registeres correctly to tcp protocol
 func TestServiceRegistration(t *testing.T) {
 
-	
 	server, err := zeroconf.Register("TestingZeroconf", "_healthchain._tcp", "local.", 4000, nil, nil)
 	defer server.Shutdown()
 	if err != nil {
 		t.Errorf("failed to register service")
 	}
-	
 
 }
-
-
